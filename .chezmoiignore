@@ -9,6 +9,7 @@
 
 .config/containers
 
+.config/fish/fish_variables
 .config/fish/fishd.tmp.*
 .config/fish/functions/tide
 .config/fish/functions/_tide_*
