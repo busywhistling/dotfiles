@@ -1,4 +1,9 @@
 function backup_homebrew
-    # backup your package list into the file: ~/Brewfile
-    brew bundle dump --file=~/.config/Brewfile --force
+  # backup your package list into the file: ~/Brewfile
+  brew bundle dump --file=~/.config/Brewfile --force
+  echo "To restore while keeping currently installed packages, use: brew bundle --file <brewfile>"
+  echo "To have only packages in the Brewfile and list cleaned packages: brew bundle cleanup"
+  echo "To actually delete those packages: brew bundle cleanup --force"
+  echo "To check the installation: brew bundle check"
+  echo "To list all Brewfile packages: brew bundle list"
 end
