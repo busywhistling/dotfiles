@@ -37,12 +37,14 @@ Music
 Pictures
 TEMP
 
+.Trash
 .aws
 .cache
 .cargo
 .cdk
 .cf
 .colima
+.console-ninja
 .crawlcompare
 .cups
 .cursor
@@ -62,7 +64,6 @@ TEMP
 .ssh
 .swiftpm
 .tldrc
-.Trash
 .vnc
 .vscode
 .vscode-oss
