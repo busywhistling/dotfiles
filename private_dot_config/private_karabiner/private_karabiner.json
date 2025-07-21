@@ -56,6 +56,16 @@
             ],
             "name": "Default profile",
             "selected": true,
+            "simple_modifications": [
+                {
+                    "from": { "consumer_key_code": "menu_pick" },
+                    "to": [{ "key_code": "return_or_enter" }]
+                },
+                {
+                    "from": { "consumer_key_code": "ac_back" },
+                    "to": [{ "key_code": "escape" }]
+                }
+            ],
             "virtual_hid_keyboard": { "keyboard_type_v2": "iso" }
         }
     ]

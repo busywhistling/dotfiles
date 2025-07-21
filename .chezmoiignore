@@ -25,6 +25,9 @@
 
 
 
+.config/zed/conversations
+.config/zed/prompts
+
 Applications
 Development
 Desktop
