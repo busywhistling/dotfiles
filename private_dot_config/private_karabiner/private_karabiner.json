@@ -55,15 +55,81 @@
                 }
             ],
             "name": "Default profile",
-            "selected": true,
             "simple_modifications": [
-                {
-                    "from": { "consumer_key_code": "menu_pick" },
-                    "to": [{ "key_code": "return_or_enter" }]
-                },
                 {
                     "from": { "consumer_key_code": "ac_back" },
                     "to": [{ "key_code": "escape" }]
+                },
+                {
+                    "from": { "consumer_key_code": "menu_pick" },
+                    "to": [{ "key_code": "return_or_enter" }]
+                }
+            ],
+            "virtual_hid_keyboard": { "keyboard_type_v2": "iso" }
+        },
+        {
+            "devices": [
+                {
+                    "identifiers": { "is_keyboard": true },
+                    "manipulate_caps_lock_led": false,
+                    "simple_modifications": [
+                        {
+                            "from": { "apple_vendor_top_case_key_code": "keyboard_fn" },
+                            "to": [{ "key_code": "left_control" }]
+                        },
+                        {
+                            "from": { "key_code": "left_control" },
+                            "to": [{ "apple_vendor_top_case_key_code": "keyboard_fn" }]
+                        }
+                    ]
+                },
+                {
+                    "identifiers": {
+                        "is_keyboard": true,
+                        "product_id": 666,
+                        "vendor_id": 76
+                    },
+                    "simple_modifications": [
+                        {
+                            "from": { "apple_vendor_top_case_key_code": "keyboard_fn" },
+                            "to": [{ "key_code": "left_control" }]
+                        },
+                        {
+                            "from": { "key_code": "left_control" },
+                            "to": [{ "apple_vendor_top_case_key_code": "keyboard_fn" }]
+                        }
+                    ],
+                    "treat_as_built_in_keyboard": true
+                }
+            ],
+            "fn_function_keys": [
+                {
+                    "from": { "key_code": "f4" },
+                    "to": [{ "key_code": "f4" }]
+                },
+                {
+                    "from": { "key_code": "f6" },
+                    "to": [{ "key_code": "vk_none" }]
+                },
+                {
+                    "from": { "key_code": "f7" },
+                    "to": [{ "key_code": "f17" }]
+                },
+                {
+                    "from": { "key_code": "f9" },
+                    "to": [{ "key_code": "f19" }]
+                }
+            ],
+            "name": "Remote mapped to media keys",
+            "selected": true,
+            "simple_modifications": [
+                {
+                    "from": { "consumer_key_code": "ac_back" },
+                    "to": [{ "key_code": "escape" }]
+                },
+                {
+                    "from": { "consumer_key_code": "menu_pick" },
+                    "to": [{ "consumer_key_code": "play_or_pause" }]
                 }
             ],
             "virtual_hid_keyboard": { "keyboard_type_v2": "iso" }

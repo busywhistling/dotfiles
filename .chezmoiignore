@@ -40,7 +40,12 @@ Music
 Pictures
 TEMP
 
+.ipython
+.jupyter
+.matplotlib
+
 .Trash
+.android
 .aws
 .cache
 .cargo

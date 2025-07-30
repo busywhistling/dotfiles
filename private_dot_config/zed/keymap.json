@@ -11,7 +11,9 @@
       "cmd-t": "terminal_panel::ToggleFocus",
       "cmd-o": "file_finder::Toggle",
       "cmd-p": "command_palette::Toggle",
-      "cmd-shift-o": "projects::OpenRecent"
+      "cmd-shift-o": "projects::OpenRecent",
+      "alt-1": "project_panel::ToggleFocus",
+      "alt-2": "git_panel::ToggleFocus"
       // "shift shift": "file_finder::Toggle"
     }
   },
