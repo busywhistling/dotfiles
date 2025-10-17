@@ -1,0 +1,2 @@
+# Zellij plugin binaries are downloaded at runtime, not source.
+private_dot_config/*/plugins/*.wasm

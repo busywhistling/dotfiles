@@ -1,7 +1,9 @@
 if status is-interactive
-  and [ "$TERM" = "xterm-kitty" ]
-  # Commands to run in interactive sessions can go here
-	fish_vi_key_bindings
+  if [ "$TERM" = "xterm-kitty" ]
+    # Commands to run in interactive sessions can go here
+    fish_vi_key_bindings
+  end
+  source ~/.config/fish/triage-screenshots.fish
 end
 
 # if status is-interactive 
@@ -11,5 +13,12 @@ end
 #   exec tmux new -A
 # end
 
-source /Users/paramjit/.config/fish/conf.d/environment.fish
 set icloud "/Users/paramjit/Library/Mobile Documents/com~apple~CloudDocs"
+
+set -gx HOMEBREW_DOWNLOAD_CONCURRENCY "auto"
+set -gx EDITOR nvim
+
+set -l file (brew --prefix)/etc/profile.d/autojump.fish
+test -s "$file"; and source $file
+
+[ -f /opt/homebrew/share/autojump/autojump.fish ]; and source /opt/homebrew/share/autojump/autojump.fish

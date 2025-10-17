@@ -95,3 +95,13 @@ TEMP
 
 **/.git
 **/.DS_Store
+
+.claude
+.claude.json
+.claude.json.backup
+
+.codex
+
+.xcodegen
+
+.zsh_history
