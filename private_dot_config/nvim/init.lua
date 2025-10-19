@@ -72,8 +72,6 @@ vim.pack.add({
 
   "https://github.com/dmtrKovalenko/fold-imports.nvim",
   "https://github.com/lukas-reineke/indent-blankline.nvim",
-
-  "https://github.com/nvim-lualine/lualine.nvim", -- TODO: get rid of this!
 })
 
 -- https://www.mitchellhanberg.com/modern-format-on-save-in-neovim/
@@ -106,8 +104,7 @@ require("mini.completion").setup({
     scroll_up = '<Shift-Tab>',
   },
 })
--- require("mini.statusline").setup()
-require('lualine').setup()
+require("mini.statusline").setup()
 
 -- Lua config
 vim.lsp.config["luals"] = {
@@ -169,6 +166,7 @@ require("nvim-tree").setup({
   },
   filters = {
     dotfiles = true,
+    custom = { "*.png", "*.svg", "*.pdf" },
   },
 })
 
