@@ -1,6 +1,7 @@
 function maintain
-    upgrade
-    echo ""
-    echo "Backing up brew bundle to ~/.config/Brewfile"
-    backup_homebrew 
+  upgrade
+  echo "\nBacking up brew bundle to ~/.config/Brewfile"
+  backup_homebrew 
+  echo "\nAuto-updating hetzner containers..."
+  ssh -t hetzner "podman auto-update"
 end

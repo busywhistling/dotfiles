@@ -26,6 +26,7 @@ o.colorcolumn = "80"
 o.completeopt = { "menuone", "noselect", "popup" }
 o.pumheight = 15
 o.laststatus = 3 -- have ONE statusline for all buffers per neovim instance
+o.cmdheight = 0
 o.undofile = true
 o.ignorecase = true
 o.smartcase = true
@@ -61,6 +62,12 @@ vim.pack.add({
   "https://github.com/rebelot/kanagawa.nvim",
 
   "https://github.com/rmagatti/auto-session",
+
+  "https://github.com/windwp/nvim-autopairs",
+  "https://github.com/nvim-tree/nvim-web-devicons",
+
+  "https://github.com/mason-org/mason.nvim",
+  "https://github.com/mason-org/mason-lspconfig.nvim",
 
 
   -- ios stuff
@@ -104,7 +111,59 @@ require("mini.completion").setup({
     scroll_up = '<Shift-Tab>',
   },
 })
-require("mini.statusline").setup()
+
+
+local devicons = require('nvim-web-devicons')
+devicons.setup()
+local statusline = require('mini.statusline')
+statusline.setup({
+  content = {
+    active = function()
+      local mode, mode_hl = statusline.section_mode({ trunc_width = 1000 })
+      local git           = statusline.section_git({ trunc_width = 40 })
+      local diff          = statusline.section_diff({ trunc_width = 75 })
+      local diagnostics   = statusline.section_diagnostics({ trunc_width = 75 })
+      local filename      = function()
+        -- In terminal always use plain name
+        if vim.bo.buftype == 'terminal' then
+          return '%t'
+        else
+          -- File name with 'truncate', 'modified', 'readonly' flags
+          -- Use relative path
+          return string.format('%s %s', devicons.get_icon(vim.fn.expand('%:t'), nil, { default = true }), '%f%m%r')
+          -- return '%F%m%r'
+        end
+      end
+      local fileinfo      = function()
+        -- Construct output string with extra file info
+        local get_size = function()
+          local size = math.max(vim.fn.line2byte(vim.fn.line('$') + 1) - 1, 0)
+          if size < 1024 then
+            return string.format('%dB', size)
+          elseif size < 1048576 then
+            return string.format('%.2fKiB', size / 1024)
+          else
+            return string.format('%.2fMiB', size / 1048576)
+          end
+        end
+
+        return string.format('%s', get_size())
+      end
+      local location      = '%L' -- statusline.section_location({ trunc_width = 1000 })
+      local search        = statusline.section_searchcount({ trunc_width = 75 })
+
+      return statusline.combine_groups({
+        { hl = mode_hl,                 strings = { mode } },
+        { hl = 'MiniStatuslineDevinfo', strings = { git, diff, diagnostics } },
+        '%<', -- Mark general truncate point
+        { hl = 'MiniStatuslineFilename', strings = { filename() } },
+        '%=', -- End left alignment
+        { hl = 'MiniStatuslineFileinfo', strings = { fileinfo() } },
+        { hl = mode_hl,                  strings = { search, location } },
+      })
+    end
+  },
+})
 
 -- Lua config
 vim.lsp.config["luals"] = {
@@ -112,7 +171,7 @@ vim.lsp.config["luals"] = {
   filetypes = { "lua" },
   -- Sets the "workspace" to the directory where any of these files is found.
   -- Files that share a root directory will reuse the LSP server connection.
-  -- Nested lists indicate equal priority, see |vim.lsp.Config|.
+  -- Nested lists indicate equal priority.
   root_markers = { { ".luarc.json", ".luarc.jsonc" }, ".git" },
   -- Specific settings to send to the server. The schema is server-defined.
   -- Example: https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json
@@ -219,7 +278,29 @@ require("render-markdown").setup({
   },
 })
 
-require("fold_imports").setup()
+require("fold_imports").setup({
+  auto_fold_after_code_action = true,
+  languages = {
+    typescript = {
+      enabled = true,
+      parsers = { "typescript", "tsx" },
+      queries = {
+        "(import_statement) @import",
+      },
+      filetypes = { "typescript", "typescriptreact" },
+      patterns = { "*.ts", "*.tsx" },
+    },
+    javascript = {
+      enabled = true,
+      parsers = { "javascript", "jsx" },
+      queries = {
+        "(import_statement) @import",
+      },
+      filetypes = { "javascript", "javascriptreact" },
+      patterns = { "*.js", "*.jsx", "*.mjs" },
+    },
+  }
+})
 
 require 'nvim-treesitter.configs'.setup {
   -- A list of parser names, or "all" (the listed parsers MUST always be installed)
@@ -279,6 +360,17 @@ vim.lsp.enable("sourcekit")
 
 require("xcodebuild").setup()
 
+require("nvim-autopairs").setup {}
+
+vim.lsp.config["tinymist"] = {
+  cmd = { "tinymist" },
+  filetypes = { "typst" },
+  settings = {
+    formatterMode = "typstyle --wrap-text",
+    semanticTokens = "disable"
+  }
+}
+vim.lsp.enable("tinymist")
 
 require 'kanagawa'.setup({
   colors = {
@@ -306,3 +398,11 @@ vim.api.nvim_create_autocmd("QuitPre", {
 })
 
 require("auto-session").setup({})
+
+require("typescript-tools").setup {}
+vim.lsp.config["typescript"] = {}
+vim.lsp.enable("typescript")
+
+
+require("mason").setup()
+require("mason-lspconfig").setup()

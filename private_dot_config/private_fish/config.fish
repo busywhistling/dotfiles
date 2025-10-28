@@ -1,9 +1,9 @@
 if status is-interactive
-  if [ "$TERM" = "xterm-kitty" ]
-    # Commands to run in interactive sessions can go here
-    fish_vi_key_bindings
+  # Commands to run in interactive sessions can go here
+  if [ "$TERM" = "xterm-ghostty" ]
+    source ~/.config/fish/triage-screenshots.fish
   end
-  source ~/.config/fish/triage-screenshots.fish
+  fish_vi_key_bindings
 end
 
 # if status is-interactive 

@@ -1,3 +1,3 @@
 function gca
-    git commit --amend --no-verify --no-edit
+    git commit -a
 end
