@@ -26,7 +26,7 @@ o.colorcolumn = "80"
 o.completeopt = { "menuone", "noselect", "popup" }
 o.pumheight = 15
 o.laststatus = 3 -- have ONE statusline for all buffers per neovim instance
-o.cmdheight = 0
+o.cmdheight = 0  -- looks visually nice but requires extra enter for each command
 o.undofile = true
 o.ignorecase = true
 o.smartcase = true
@@ -61,6 +61,9 @@ vim.pack.add({
   "https://github.com/MeanderingProgrammer/render-markdown.nvim",
   "https://github.com/rebelot/kanagawa.nvim",
 
+  "https://github.com/kawre/leetcode.nvim",
+  "https://github.com/tree-sitter/tree-sitter-html",
+
   "https://github.com/rmagatti/auto-session",
 
   "https://github.com/windwp/nvim-autopairs",
@@ -68,7 +71,6 @@ vim.pack.add({
 
   "https://github.com/mason-org/mason.nvim",
   "https://github.com/mason-org/mason-lspconfig.nvim",
-
 
   -- ios stuff
   "https://github.com/wojciech-kulik/xcodebuild.nvim",
@@ -165,8 +167,7 @@ statusline.setup({
   },
 })
 
--- Lua config
-vim.lsp.config["luals"] = {
+vim.lsp.config("lua_ls", {
   cmd = { "lua-language-server" },
   filetypes = { "lua" },
   -- Sets the "workspace" to the directory where any of these files is found.
@@ -181,9 +182,9 @@ vim.lsp.config["luals"] = {
       diagnostics = { globals = { "vim" } }
     }
   }
-}
-vim.lsp.enable("luals")
+})
 
+vim.lsp.enable("luals")
 
 -- Cpp config
 vim.lsp.enable("clangd")
@@ -302,7 +303,7 @@ require("fold_imports").setup({
   }
 })
 
-require 'nvim-treesitter.configs'.setup {
+require('nvim-treesitter.configs').setup({
   -- A list of parser names, or "all" (the listed parsers MUST always be installed)
   ensure_installed = { "c", "lua", "typescript", "markdown", "markdown_inline", "swift" },
 
@@ -342,7 +343,7 @@ require 'nvim-treesitter.configs'.setup {
     -- Instead of true it can also be a list of languages
     additional_vim_regex_highlighting = false,
   },
-}
+})
 
 require("ibl").setup()
 
@@ -372,7 +373,7 @@ vim.lsp.config["tinymist"] = {
 }
 vim.lsp.enable("tinymist")
 
-require 'kanagawa'.setup({
+require('kanagawa').setup({
   colors = {
     theme = { all = { ui = { bg_gutter = 'none' } } }
   }
@@ -406,3 +407,15 @@ vim.lsp.enable("typescript")
 
 require("mason").setup()
 require("mason-lspconfig").setup()
+
+require("leetcode").setup({
+  injector = { --- @type table<lc.lang, lc.inject>
+    ["cpp"] = {
+      imports = function()
+        -- return a different list to omit default imports
+        return { "#include <vector>", "using namespace std;" }
+      end,
+      after = "int main() {}",
+    },
+  },
+})

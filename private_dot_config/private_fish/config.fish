@@ -1,7 +1,12 @@
 if status is-interactive
   # Commands to run in interactive sessions can go here
   if [ "$TERM" = "xterm-ghostty" ]
-    source ~/.config/fish/triage-screenshots.fish
+    # TODO: add
+    # source ~/.config/fish/triage-screenshots.fish
+    if test -z "$ZELLIJ_SESSION_NAME"
+      zellij attach --create std options --session-serialization false
+    end
+    # eval (zellij setup --generate-auto-start fish | string collect)
   end
   fish_vi_key_bindings
 end

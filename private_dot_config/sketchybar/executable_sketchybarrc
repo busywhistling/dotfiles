@@ -3,7 +3,7 @@ PLUGIN_DIR="$CONFIG_DIR/plugins"
 ##### Bar Appearance #####
 # Configuring the general appearance of the bar. Available options:
 # https://felixkratz.github.io/SketchyBar/config/bar
-sketchybar --bar position=top display=1 topmost=window height=32 color=0xFF000000
+sketchybar --bar position=top display=main topmost=window height=32 color=0xFF000000
 
 ##### Changing Defaults #####
 # We now change some default values, which are applied to all further items.

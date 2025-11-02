@@ -24,6 +24,10 @@
       "rev": "27f1e11",
       "src": "https://github.com/rebelot/kanagawa.nvim"
     },
+    "leetcode.nvim": {
+      "rev": "fdd3f91",
+      "src": "https://github.com/kawre/leetcode.nvim"
+    },
     "lualine.nvim": {
       "rev": "b8c2315",
       "src": "https://github.com/nvim-lualine/lualine.nvim"
@@ -103,6 +107,10 @@
     "telescope.nvim": {
       "rev": "b4da76b",
       "src": "https://github.com/nvim-telescope/telescope.nvim"
+    },
+    "tree-sitter-html": {
+      "rev": "73a3947",
+      "src": "https://github.com/tree-sitter/tree-sitter-html"
     },
     "trouble.nvim": {
       "rev": "c098362",
