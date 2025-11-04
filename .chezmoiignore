@@ -9,6 +9,8 @@
 
 .config/containers
 
+.config/gh
+
 .config/fish/fish_variables
 .config/fish/fishd.tmp.*
 .config/fish/functions/tide
@@ -18,6 +20,7 @@
 .config/fish/functions/fish_prompt.fish
 .config/fish/functions/fisher.fish
 .config/fish/functions/tide.fish
+
 
 .config/git/allowed_signers
 
