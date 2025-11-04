@@ -1,1 +1,1 @@
-# Disable default vi prompt
+# Do not delete

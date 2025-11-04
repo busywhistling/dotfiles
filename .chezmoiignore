@@ -2,15 +2,10 @@
 
 .config/btop/themes/**
 .config/btop/btop.log
-
 .config/chezmoi
-
 .config/configstore
-
 .config/containers
-
 .config/gh
-
 .config/fish/fish_variables
 .config/fish/fishd.tmp.*
 .config/fish/functions/tide
@@ -20,16 +15,19 @@
 .config/fish/functions/fish_prompt.fish
 .config/fish/functions/fisher.fish
 .config/fish/functions/tide.fish
-
-
 .config/git/allowed_signers
-
 .config/karabiner/automatic_backups
 
+{{ if ne .chezmoi.hostname "macbook" }}
+.config/gh-dash
+.config/ghostty
+.config/karabiner
+.config/kitty
+.config/mpv
+.config/sketchybar
+.config/svim
+{{ end }}
 
-
-.config/zed/conversations
-.config/zed/prompts
 
 Applications
 Development
