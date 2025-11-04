@@ -1,3 +1,3 @@
 function gb
-    git branch -vv
+  git branch -vv
 end

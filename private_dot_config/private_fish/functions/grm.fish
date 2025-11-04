@@ -1,3 +1,3 @@
 function grm
-    git branch -D $argv
+  git branch -D $argv
 end

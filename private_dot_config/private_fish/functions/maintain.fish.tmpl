@@ -4,7 +4,7 @@ function maintain
   printf "\nBacking up brew bundle to ~/.config/Brewfile"
 
   # Backing up homebrew
-# backup your package list into the file: ~/Brewfile
+  # backup your package list into the file: ~/Brewfile
   brew bundle dump --file=~/.config/Brewfile --force
   echo "To restore while keeping currently installed packages, use: brew bundle --file <brewfile>"
   echo "To have only packages in the Brewfile and list cleaned packages: brew bundle cleanup"

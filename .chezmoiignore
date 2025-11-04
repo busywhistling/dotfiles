@@ -19,6 +19,8 @@
 .config/karabiner/automatic_backups
 
 {{ if ne .chezmoi.hostname "macbook" }}
+.config/fish/functions/setup_work_git.fish
+
 .config/gh-dash
 .config/ghostty
 .config/karabiner

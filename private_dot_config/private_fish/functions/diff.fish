@@ -1,3 +1,3 @@
 function diff
-kitten diff $argv
+  kitten diff $argv
 end

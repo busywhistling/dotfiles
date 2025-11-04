@@ -1,3 +1,3 @@
 function gca
-    git commit -a
+  git commit -a
 end
