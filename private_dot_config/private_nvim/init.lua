@@ -1,11 +1,14 @@
 --[[
-  paramjit"s minimal config
+  paramjit's minimal config
   design goals:
     - single file
     - use native nvim features (>= 0.11.5)
     - only include what is actually used / configure only when necessary
     - usage convenience and comfort over config simplicity
 ]]
+local hostname = vim.loop.os_gethostname()
+print("Hostname: " .. hostname)
+
 local o = vim.opt
 o.tabstop = 2
 o.shiftwidth = 2 -- new line indents should be 2
@@ -15,9 +18,6 @@ o.autoread = true
 o.number = true
 o.relativenumber = true -- to help with jumping
 -- schedule setting after `UiEnter` to avoid increasing startup-time
-vim.schedule(function()
-	o.clipboard = "unnamedplus" -- sync clipboard between OS & nvim
-end)
 o.signcolumn = "auto"
 o.inccommand = "split" -- preview substitutions live, as you type
 o.splitright = true
@@ -26,9 +26,8 @@ o.cursorline = true
 o.scrolloff = 10
 o.confirm = true
 o.backspace = "indent,eol,start"
-o.shell = "/opt/homebrew/bin/fish"
-o.colorcolumn = "76" -- yes this needs to be a string
-o.textwidth = 76
+o.colorcolumn = "80" -- yes this needs to be a string
+o.textwidth = 80
 o.completeopt = { "menuone", "noselect", "popup" }
 o.pumheight = 15
 o.laststatus = 3 -- have ONE statusline for all buffers per neovim instance
@@ -49,6 +48,13 @@ o.spelllang = "en_gb"
 -- local project_spells = require("utils").get_root_dir .. "/spell_en.utf-8.add"
 o.fillchars = { eob = " " }
 
+if hostname == "macbook" then
+	vim.schedule(function()
+		o.clipboard = "unnamedplus" -- sync clipboard between OS & nvim
+	end)
+	o.shell = "/opt/homebrew/bin/fish"
+end
+
 local g = vim.g
 g.mapleader = " "
 g.maplocalleader = " "
@@ -63,11 +69,8 @@ vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
--- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
--- is not what someone will guess without a bit more experience.
+-- for people to discover.
 --
--- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
--- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
 -- Keybinds to make split navigation easier.
@@ -91,8 +94,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 -- [[ Install `lazy.nvim` plugin manager ]]
---    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
--- Bootstrap lazy.nvim
+-- See `:help lazy.nvim.txt` for more info
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
 	local lazyrepo = "https://github.com/folke/lazy.nvim.git"
@@ -110,15 +112,8 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- [[ Configure and install plugins ]]
---
---  To check the current status of your plugins, run
---    :Lazy
---
---  You can press `?` in this menu for help. Use `:q` to close the window
---
---  To update plugins you can run
---    :Lazy update
---
+--  To check the current status of your plugins, run `:Lazy`
+
 -- NOTE: Here is where you install your plugins.
 -- NOTE: Plugins can also be added by using a table,
 -- with the first argument being the link and the following
@@ -146,6 +141,23 @@ require("lazy").setup({
 		-- TODO: add your plugins here
 		{
 			"lewis6991/gitsigns.nvim",
+		},
+		{
+			"windwp/nvim-autopairs",
+			event = "InsertEnter",
+			config = true,
+		},
+		{
+			"rmagatti/auto-session",
+			lazy = false,
+
+			---enables autocomplete for opts
+			---@module "auto-session"
+			---@type AutoSession.Config
+			opts = {
+				suppressed_dirs = { "~/", "~/Projects", "~/Downloads", "/" },
+				-- log_level = 'debug',
+			},
 		},
 		{
 			"chomosuke/typst-preview.nvim",
@@ -209,8 +221,6 @@ require("lazy").setup({
 		{
 			"lukas-reineke/indent-blankline.nvim",
 			main = "ibl",
-			---@module "ibl"
-			---@type ibl.config
 			opts = {},
 		},
 
@@ -938,6 +948,25 @@ require("lazy").setup({
 					":NvimTreeFindFileToggle<cr>",
 					{ silent = true, noremap = true, desc = "Open file Tree" }
 				)
+
+				vim.api.nvim_create_autocmd("QuitPre", {
+					callback = function()
+						local invalid_win = {}
+						local wins = vim.api.nvim_list_wins()
+						for _, w in ipairs(wins) do
+							local bufname = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(w))
+							if bufname:match("NvimTree_") ~= nil then
+								table.insert(invalid_win, w)
+							end
+						end
+						if #invalid_win == #wins - 1 then
+							-- Should quit, so we close all invalid windows.
+							for _, w in ipairs(invalid_win) do
+								vim.api.nvim_win_close(w, true)
+							end
+						end
+					end,
+				})
 			end,
 		},
 
@@ -1016,8 +1045,6 @@ require("lazy").setup({
 --   "https://github.com/folke/trouble.nvim",
 --   "https://github.com/pmizio/typescript-tools.nvim",
 --   "https://github.com/kawre/leetcode.nvim",
---   "https://github.com/rmagatti/auto-session",
---   "https://github.com/windwp/nvim-autopairs",
 --   "https://github.com/folke/snacks.nvim",
 --   "https://github.com/MunifTanjim/nui.nvim",
 --   "https://github.com/mfussenegger/nvim-dap",
@@ -1025,8 +1052,6 @@ require("lazy").setup({
 --   "https://github.com/wojciech-kulik/xcodebuild.nvim",
 --   "https://github.com/dmtrKovalenko/fold-imports.nvim",
 -- })
---
-
 -- -- require("mini.completion").setup({
 -- --   mappings = {
 -- --     -- Scroll info/signature window down/up. When overriding, check for
@@ -1084,9 +1109,6 @@ require("lazy").setup({
 --
 --
 --
--- require("nvim-autopairs").setup {}
--- require("auto-session").setup({})
---
 -- require("typescript-tools").setup {}
 -- vim.lsp.config["typescript"] = {}
 -- vim.lsp.enable("typescript")
@@ -1119,37 +1141,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	callback = function()
 		vim.keymap.set("n", "K", vim.lsp.buf.hover, { noremap = true, silent = true })
 		vim.keymap.set("n", "gd", vim.lsp.buf.definition, { noremap = true, silent = true })
-	end,
-})
--- -- https://www.mitchellhanberg.com/modern-format-on-save-in-neovim/
--- vim.api.nvim_create_autocmd("LspAttach", {
---   group = vim.api.nvim_create_augroup("lsp", { clear = true }),
---   callback = function(args)
---     vim.api.nvim_create_autocmd("BufWritePre", {
---       buffer = args.buf,
---       callback = function()
---         vim.lsp.buf.format { async = false, id = args.data.client_id }
---       end,
---     })
---   end
--- })
-
-vim.api.nvim_create_autocmd("QuitPre", {
-	callback = function()
-		local invalid_win = {}
-		local wins = vim.api.nvim_list_wins()
-		for _, w in ipairs(wins) do
-			local bufname = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(w))
-			if bufname:match("NvimTree_") ~= nil then
-				table.insert(invalid_win, w)
-			end
-		end
-		if #invalid_win == #wins - 1 then
-			-- Should quit, so we close all invalid windows.
-			for _, w in ipairs(invalid_win) do
-				vim.api.nvim_win_close(w, true)
-			end
-		end
 	end,
 })
 
