@@ -1,0 +1,8 @@
+[mgr]
+ratio = [0,1,3]
+# show_hidden = true
+
+# [opener]
+# play = [
+#   { run = 'iina "$@"', orphan = true, for = "unix" },
+# ]

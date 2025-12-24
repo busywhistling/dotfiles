@@ -1,0 +1,7 @@
+function sync_media_from_hetzner
+  echo "Will perform the following destructive actions locally, continue (Y/N)?"
+  rsync -avz --progress --delete --dry-run --human-readable -e ssh {{ .media.remoteDir }}/ {{ .media.archiveDir }}/ | grep deleting
+  echo ""
+  echo "Current status"
+  duf --hide-mp '/dev, *com*, *ystem*, *timemachine*, *imulator*'
+end

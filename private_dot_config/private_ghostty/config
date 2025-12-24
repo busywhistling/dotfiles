@@ -42,8 +42,10 @@
 # # Just for example:
 # resize-overlay-duration = 4s 200ms
 
-window-decoration = none
+macos-titlebar-style = tabs
 theme = "Kanagawa Dragon"
 
+# workflow heavily using tmux
+# window-decoration = none
 # Unbind CMD+... keys so they will be forwarded to Zellij
-keybind = cmd+t=unbind
+# keybind = cmd+t=unbind
