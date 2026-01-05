@@ -7,7 +7,6 @@
     - usage convenience and comfort over config simplicity
 ]]
 local hostname = vim.loop.os_gethostname()
-print("Hostname: " .. hostname)
 
 local o = vim.opt
 o.tabstop = 2
@@ -150,7 +149,6 @@ require("lazy").setup({
 		{
 			"rmagatti/auto-session",
 			lazy = false,
-
 			---enables autocomplete for opts
 			---@module "auto-session"
 			---@type AutoSession.Config
@@ -1037,7 +1035,9 @@ require("lazy").setup({
 	-- colorscheme that will be used when installing plugins.
 	install = { colorscheme = { "kanagawa-dragon" } },
 	-- automatically check for plugin updates
-	checker = { enabled = true },
+	-- enabling the following will startup the plugin updates window upon opening
+	-- neovim each time
+	checker = { enabled = false },
 })
 
 -- vim.pack.add({

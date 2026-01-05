@@ -142,16 +142,12 @@
                     "to": [{ "key_code": "f4" }]
                 },
                 {
+                    "from": { "key_code": "f5" },
+                    "to": [{ "key_code": "f5" }]
+                },
+                {
                     "from": { "key_code": "f6" },
                     "to": [{ "key_code": "vk_none" }]
-                },
-                {
-                    "from": { "key_code": "f7" },
-                    "to": [{ "key_code": "f17" }]
-                },
-                {
-                    "from": { "key_code": "f9" },
-                    "to": [{ "key_code": "f19" }]
                 }
             ],
             "name": "Remote mapped to media keys",

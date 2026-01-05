@@ -31,3 +31,6 @@ test -s "$file"; and source $file
 set -gx GOPATH "$HOME/.local/go"
 
 fish_ssh_agent
+
+# Amp CLI
+export PATH="/Users/paramjit/.amp/bin:$PATH"
