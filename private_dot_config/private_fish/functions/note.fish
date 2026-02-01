@@ -1,7 +1,7 @@
 function note
   set inbox_location "/Users/paramjit/Documents/1 Notes/0 Inbox"
   set curr_month (date +"%Y-%m")
-  set inboxfile "$curr_month.typ"
+  set inboxfile "Journal-$curr_month.typ"
   
   cd $inbox_location
   if test -e $inboxfile

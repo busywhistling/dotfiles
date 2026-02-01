@@ -1,0 +1,11 @@
+node_modules
+.venv
+.turbo/cache
+.next/cache
+
+.npm/_cacache
+
+/Users/paramjit/Library
+/Users/paramjit/Applications
+/Users/paramjit/.bun
+/Users/paramjit/.local/share/containers

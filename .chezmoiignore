@@ -1,7 +1,5 @@
 # relative to the $HOME directory
 
-.png
-
 .config/btop/themes/**
 .config/btop/btop.log
 .config/chezmoi
@@ -20,6 +18,8 @@
 .config/git/allowed_signers
 .config/karabiner/automatic_backups
 
+.config/opencode
+
 
 {{ if ne .chezmoi.hostname "macbook" }}
 .config/fish/functions/setup_work_git.fish
@@ -37,7 +37,6 @@
 .bun
 
 Applications
-Development
 Desktop
 Documents
 Downloads
@@ -46,7 +45,6 @@ Library
 Movies
 Music
 Pictures
-TEMP
 
 .ipython
 .jupyter
@@ -107,13 +105,9 @@ TEMP
 .claude
 .claude.json
 .claude.json.backup
-
 .codex
-
 .xcodegen
-
 .zsh_history
-
 .garminconnect
-
 .amp
+.png

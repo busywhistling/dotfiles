@@ -1,8 +1,9 @@
 function sync_repos
   set path (pwd)
-  cd /Users/paramjit/Development/work
+  cd "/Users/paramjit/Documents/5 Work dev"
   for repo in (fd -t d -d 1)
     cd $repo
+    printf "\nMaintaining $repo\n"
     hub sync
     delete_localonly_branches
     cd ..
