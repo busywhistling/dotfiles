@@ -1,5 +1,7 @@
 # relative to the $HOME directory
 
+.png
+
 .config/btop/themes/**
 .config/btop/btop.log
 .config/chezmoi
