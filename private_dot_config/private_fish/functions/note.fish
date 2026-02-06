@@ -1,5 +1,5 @@
 function note
-  set inbox_location "/Users/paramjit/Documents/1 Notes/0 Inbox"
+  set inbox_location "/Users/paramjit/Documents/1_Notes/0 Inbox"
   set curr_month (date +"%Y-%m")
   set inboxfile "Journal-$curr_month.typ"
   

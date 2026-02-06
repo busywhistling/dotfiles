@@ -1,7 +1,11 @@
 node_modules
 .venv
-.turbo/cache
-.next/cache
+.git
+.next
+.turbo
+
+.cache
+.cargo
 
 .npm/_cacache
 

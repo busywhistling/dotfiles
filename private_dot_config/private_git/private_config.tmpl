@@ -1,0 +1,43 @@
+# See for a detailed overview
+# https://stackoverflow.com/questions/17756753/where-do-the-settings-in-my-git-configuration-come-from/17756808#17756808
+
+# This is Git's per-user configuration file.
+[user]
+  useConfigOnly = true
+  name = {{ .fullName }}
+  email = {{ .email }}
+  signingkey = ~/.ssh/id_macbook.pub
+
+[log]
+  date = local
+[core]
+  ignorecase = false
+  sshCommand = "ssh -o IdentitiesOnly=yes -i ~/.ssh/id_macbook"
+[credential]
+  helper = osxkeychain
+[push]
+  autoSetupRemote = true
+[pull]
+  rebase = true
+[http]
+  postBuffer = 524288000
+[filter "lfs"]
+  process = git-lfs filter-process
+  required = true
+  clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
+[gpg]
+  format = ssh
+[gpg "ssh"]
+  allowedSignersFile = ~/.config/git/allowed_signers
+[format]
+  signoff = true
+[commit]
+  gpgsign = true
+# [tag]
+#   gpgsign = true
+[fetch]
+  prune = true
+[init]
+  defaultBranch = main
+
