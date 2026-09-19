@@ -31,6 +31,7 @@ Pictures
 .config/chezmoi
 .config/configstore
 .config/containers
+.config/fish/fish_variables
 .config/fish/fishd.tmp.*
 .config/karabiner/automatic_backups
 .config/nono/packages
