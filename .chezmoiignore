@@ -28,7 +28,7 @@ Pictures
 
 .config/1Password/telemetry-enabled
 .config/btop/btop.log
-.config/chezmoi/chezmoistate.boltdb
+.config/chezmoi
 .config/configstore
 .config/containers
 .config/fish/fishd.tmp.*
