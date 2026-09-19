@@ -23,6 +23,9 @@ sketchybar --default "${default[@]}"
 
 sketchybar --add item clock left \
            --set clock update_freq=10 script="$PLUGIN_DIR/clock.sh" \
+           --add item chezmoi left \
+           --set chezmoi update_freq=300 script="$PLUGIN_DIR/chezmoi.sh" \
+           --set chezmoi label.color=0xffff0000 \
            --add item battery right \
            --set battery update_freq=120 script="$PLUGIN_DIR/battery.sh" \
            --subscribe battery system_woke power_source_change \
