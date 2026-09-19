@@ -1,5 +1,7 @@
 # relative to the $HOME directory
 
+README.md  # to keep it in repo without applying it
+
 **/.git
 **/.DS_Store
 
