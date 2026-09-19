@@ -1,0 +1,40 @@
+echo "Running the backup program..."
+restic backup \
+  -o b2.connections=20 \
+  --files-from $FILES \
+  --exclude-file $EXCLUDES \
+  --cache-dir $CACHEDIR \
+  --exclude-caches
+echo ""
+
+if [ $argv[2] ]; and [ $argv[2] = "prune" ]
+  echo "Pruning the repository..."
+  restic forget \
+    --keep-last 5 \
+    --keep-daily 30 \
+    --keep-weekly 8 \
+    --keep-monthly 6 \
+    --prune \
+    --cache-dir $CACHEDIR
+  echo ""
+end
+
+if [ $argv[2] ]; and [ $argv[2] = "reset" ]
+  echo "Resetting the repository..."
+  restic forget \
+    --keep-last 1 \
+    --cache-dir $CACHEDIR \
+    --prune
+  echo ""
+end
+
+echo "Checking the repository for errors..."
+if restic check --with-cache --cache-dir "/home/paramjit/.cache/restic-root"
+  echo ""
+  notify $manual "'Backup complete' 'Uploaded to Backblaze'"
+else
+  echo ""
+  notify $manual "'Backed up to Backblaze' 'Errors encountered while checking'"
+end
+
+date +%d > $TIMESTAMP

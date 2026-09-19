@@ -1,0 +1,8 @@
+function bare_opencode --wraps opencode
+  env \
+    OPENCODE_CONFIG_DIR="/Users/paramjit/Documents/2_dev/.opencode" \
+    {{ .ai.env.primary }}=(op read "op://{{ .op.aiVault }}/{{ .op.items.aiPrimary }}/Anmeldedaten") \
+    {{ .ai.env.proxy }}=(op read "op://{{ .op.aiVault }}/{{ .op.items.aiProxy }}/Anmeldedaten") \
+    {{ .ai.env.docs }}=(op read "op://Personal/{{ .op.items.docsSearch }}/Anmeldedaten") \
+    /opt/homebrew/bin/opencode $argv
+end

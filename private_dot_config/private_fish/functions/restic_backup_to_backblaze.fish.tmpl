@@ -1,0 +1,29 @@
+function restic_backup_to_backblaze
+  set -x BUCKET_NAME "macbook-eu"
+  
+  set -x AWS_ACCESS_KEY_ID (op read "op://Dev/{{ .op.items.backupPrimary }}/Benutzername")
+  set -x AWS_SECRET_ACCESS_KEY (op read "op://Dev/{{ .op.items.backupPrimary }}/Anmeldedaten")
+  set -x RESTIC_REPOSITORY "s3:s3.eu-central-003.backblazeb2.com/$BUCKET_NAME"
+  set -x RESTIC_PASSWORD (op read "op://Dev/{{ .op.items.backupPrimaryRestic }}/password")
+  
+  # restic init
+  
+  caffeinate -i restic backup \
+    /Users/paramjit/Music \
+    /Users/paramjit/Documents \
+    /Users/paramjit/Pictures \
+    --exclude-file=/Users/paramjit/.config/restic/excludefile
+
+  if test -d "{{ .media.libraryDir }}"
+    set -x BUCKET_NAME "{{ .media.archiveBucket }}"
+
+    set -x AWS_ACCESS_KEY_ID (op read "op://Dev/{{ .op.items.backupArchive }}/Benutzername")
+    set -x AWS_SECRET_ACCESS_KEY (op read "op://Dev/{{ .op.items.backupArchive }}/Anmeldedaten")
+    set -x RESTIC_REPOSITORY "s3:s3.eu-central-003.backblazeb2.com/$BUCKET_NAME"
+    set -x RESTIC_PASSWORD (op read "op://Dev/{{ .op.items.backupArchiveRestic }}/password")
+
+    # restic init
+
+    caffeinate -i restic backup {{ .media.libraryDir }}
+  end
+end
