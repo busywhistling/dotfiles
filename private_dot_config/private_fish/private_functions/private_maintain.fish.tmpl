@@ -67,12 +67,12 @@ function maintain
   end
 
   
-  if should_run $timestamp_dir hetzner_maintain 21600 "6 hours"
-    printf "\n#################################################################\n"
-    echo "Maintaining hetzner"
-    ssh hetzner maintain
-    mark_run $timestamp_dir hetzner_maintain
-  end
+  # if should_run $timestamp_dir hetzner_maintain 21600 "6 hours"
+  #   printf "\n#################################################################\n"
+  #   echo "Maintaining hetzner"
+  #   ssh hetzner maintain
+  #   mark_run $timestamp_dir hetzner_maintain
+  # end
 
   if should_run $timestamp_dir mole 2629800 "1 month"
     printf "\n#################################################################\n"
