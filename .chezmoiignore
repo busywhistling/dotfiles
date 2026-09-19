@@ -38,5 +38,10 @@ Pictures
 .config/op
 .config/opencode/node_modules
 
-# {{ if ne .chezmoi.hostname "macbook" }}
-# {{ end }}
+{{ if ne .chezmoi.hostname "macbook" }}
+.config/1Password
+.config/karabiner
+.config/op
+.config/sketchybar
+.config/mbsyncrc
+{{ end }}
