@@ -134,6 +134,15 @@
                         "vendor_id": 7504
                     },
                     "ignore": true
+                },
+                {
+                    "identifiers": {
+                        "is_keyboard": true,
+                        "is_pointing_device": true,
+                        "product_id": 62981,
+                        "vendor_id": 13652
+                    },
+                    "ignore": false
                 }
             ],
             "fn_function_keys": [

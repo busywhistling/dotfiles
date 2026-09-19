@@ -1,0 +1,81 @@
+# Global defaults
+Create Near
+Expunge Near
+SyncState *
+CopyArrivalDate yes
+Sync Pull
+
+# Fastmail {{ .mail.secondary.name | title }}
+IMAPAccount fastmail_{{ .mail.secondary.name }}
+Host imap.fastmail.com
+Port 993
+AuthMechs LOGIN
+User {{ .mail.secondary.address }}
+PassCmd "op read op://Private/{{ .op.items.mailSecondary }}/password"
+TLSType IMAPS
+TLSVersions +1.2
+
+IMAPStore fastmail-remote-{{ .mail.secondary.name }}
+Account fastmail_{{ .mail.secondary.name }}
+
+# This section describes the local storage
+MaildirStore fastmail-local-{{ .mail.secondary.name }}
+Path ~/.local/share/mailboxes/fastmail-{{ .mail.secondary.name }}/
+Inbox ~/.local/share/mailboxes/fastmail-{{ .mail.secondary.name }}/Inbox
+SubFolders Verbatim
+
+# This section a "channel", a connection between remote and local
+Channel fastmail_{{ .mail.secondary.name }}
+Far :fastmail-remote-{{ .mail.secondary.name }}:
+Near :fastmail-local-{{ .mail.secondary.name }}:
+Patterns *
+
+# Fastmail {{ .mail.tertiary.name | title }}
+IMAPAccount fastmail_{{ .mail.tertiary.name }}
+Host imap.fastmail.com
+Port 993
+AuthMechs LOGIN
+User {{ .mail.tertiary.address }}
+PassCmd "op read op://Private/{{ .op.items.mailTertiary }}/password"
+TLSType IMAPS
+TLSVersions +1.2
+
+IMAPStore fastmail-remote-{{ .mail.tertiary.name }}
+Account fastmail_{{ .mail.tertiary.name }}
+
+# This section describes the local storage
+MaildirStore fastmail-local-{{ .mail.tertiary.name }}
+Path ~/.local/share/mailboxes/fastmail-{{ .mail.tertiary.name }}/
+Inbox ~/.local/share/mailboxes/fastmail-{{ .mail.tertiary.name }}/Inbox
+SubFolders Verbatim
+
+# This section a "channel", a connection between remote and local
+Channel fastmail_{{ .mail.tertiary.name }}
+Far :fastmail-remote-{{ .mail.tertiary.name }}:
+Near :fastmail-local-{{ .mail.tertiary.name }}:
+Patterns *
+
+# Fastmail Paramjit
+IMAPAccount fastmail_paramjit
+Host imap.fastmail.com
+Port 993
+AuthMechs LOGIN
+User {{ .email }}
+PassCmd "op read op://Private/{{ .op.items.mailPrimary }}/password"
+TLSType IMAPS
+TLSVersions +1.2
+
+IMAPStore fastmail-remote-paramjit
+Account fastmail_paramjit
+
+# This section describes the local storage
+MaildirStore fastmail-local-paramjit
+Path ~/.local/share/mailboxes/fastmail-paramjit/
+Inbox ~/.local/share/mailboxes/fastmail-paramjit/Inbox
+SubFolders Verbatim
+
+# This section a "channel", a connection between remote and local
+Channel fastmail_paramjit
+Far :fastmail-remote-paramjit:
+Near :fastmail-local-paramjit:
+Patterns *
