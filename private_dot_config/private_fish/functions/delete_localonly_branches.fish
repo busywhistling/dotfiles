@@ -1,5 +1,5 @@
 function delete_localonly_branches
-  set local_branches_gone_on_remote (git branch -vv | grep ': gone]' | awk '{print $1}')
+  set local_branches_gone_on_remote (git branch -vv | awk '/: gone]/{print ($1=="*" ? $2 : $1)}')
   set current_branch (git symbolic-ref --short HEAD)
 
   if contains $current_branch $local_branches_gone_on_remote
@@ -14,5 +14,5 @@ function delete_localonly_branches
 
   # Prune unneeded branches
   git fetch --prune --all
-  git branch -vv | grep ': gone]' | awk '{print $1}' | xargs git branch -D
+  git branch -vv | awk '/: gone]/{print ($1=="*" ? $2 : $1)}' | xargs git branch -D
 end

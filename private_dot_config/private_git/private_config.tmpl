@@ -13,6 +13,7 @@
 [core]
   ignorecase = false
   sshCommand = "ssh -o IdentitiesOnly=yes -i ~/.ssh/id_macbook"
+  # pager = hunk pager
 [credential]
   helper = osxkeychain
 [push]
@@ -39,5 +40,7 @@
 [fetch]
   prune = true
 [init]
-  defaultBranch = main
+	defaultBranch = main
+[rebase]
+	instructionFormat = %s [%ad]
 

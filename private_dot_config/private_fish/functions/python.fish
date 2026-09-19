@@ -1,3 +1,7 @@
-function python --wraps=python3 --description 'alias python python3'
-  python3 $argv
+function python --wraps=python3
+    if test (count $argv) -eq 0
+        bpython
+    else
+        /opt/homebrew/bin/python3 $argv
+    end
 end

@@ -1,11 +1,20 @@
 function sync_repos
   set path (pwd)
-  for repo in (fd -t d -d 1)
-    printf "\nMaintaining $repo\n"
+
+  printf "\nMaintaining 2_dev\n"
+  cd "/Users/paramjit/Documents/2_dev"
+  hub sync --color
+
+  cd /Users/paramjit/Documents/4_gitclones
+  printf "\nSyncing downloaded repos\n"
+  for repo in (ls)
     cd $repo
+    printf "\nMaintaining $repo\n"
     hub sync --color
-    delete_localonly_branches
     cd ..
   end
+
   cd $path
+
+  ls ~/Documents/4_gitclones/ > ~/Documents/1_notes/gitclones.typ
 end

@@ -1,5 +1,7 @@
 function note
-  set inbox_location "/Users/paramjit/Documents/1_Notes/0 Inbox"
+  set path (pwd)
+
+  set inbox_location "/Users/paramjit/Documents/1_Notes/0_Inbox"
   set curr_month (date +"%Y-%m")
   set inboxfile "Journal-$curr_month.typ"
   
@@ -12,4 +14,6 @@ function note
   else
     nvim $inboxfile
   end
+
+  cd $path
 end

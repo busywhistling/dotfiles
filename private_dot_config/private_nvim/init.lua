@@ -33,7 +33,7 @@ o.laststatus = 3 -- have ONE statusline for all buffers per neovim instance
 o.cmdheight = 0 -- looks visually nice but requires extra enter for each command
 o.showmode = false -- has no effect due to cmdheight=0
 o.undofile = true
-o.ignorecase = true
+o.ignorecase = false
 o.smartcase = true
 o.swapfile = false
 -- o.foldmethod = "indent"
@@ -52,6 +52,8 @@ if hostname == "macbook" then
 		o.clipboard = "unnamedplus" -- sync clipboard between OS & nvim
 	end)
 	o.shell = "/opt/homebrew/bin/fish"
+elseif hostname == "hetzner" then
+	o.shell = "/home/linuxbrew/.linuxbrew/bin/fish"
 end
 
 local g = vim.g
@@ -153,14 +155,23 @@ require("lazy").setup({
 			---@module "auto-session"
 			---@type AutoSession.Config
 			opts = {
-				suppressed_dirs = { "~/", "~/Projects", "~/Downloads", "/" },
+				suppressed_dirs = { "~/", "~/Downloads", "/" },
 				-- log_level = 'debug',
 			},
+		},
+		"folke/zen-mode.nvim",
+		opts = {
+			-- your configuration comes here
+			-- or leave it empty to use the default settings
+			-- refer to the configuration section below
 		},
 		{
 			"chomosuke/typst-preview.nvim",
 			lazy = false, -- or ft = 'typst'
 			version = "1.*",
+			cond = function()
+				return vim.loop.os_gethostname() == "macbook"
+			end,
 			opts = {}, -- lazy.nvim will implicitly calls `setup {}`
 		},
 		{ -- Useful plugin to show you pending keybinds.
@@ -448,33 +459,13 @@ require("lazy").setup({
 						--  the definition of its *type*, not where it was *defined*.
 						map("grt", require("telescope.builtin").lsp_type_definitions, "[G]oto [T]ype Definition")
 
-						-- This function resolves a difference between neovim nightly (version 0.11) and stable (version 0.10)
-						---@param client vim.lsp.Client
-						---@param method vim.lsp.protocol.Method
-						---@param bufnr? integer some lsp support methods only in specific files
-						---@return boolean
-						local function client_supports_method(client, method, bufnr)
-							if vim.fn.has("nvim-0.11") == 1 then
-								return client:supports_method(method, bufnr)
-							else
-								return client.supports_method(method, { bufnr = bufnr })
-							end
-						end
-
 						-- The following two autocommands are used to highlight references of the
 						-- word under your cursor when your cursor rests there for a little while.
 						--    See `:help CursorHold` for information about when this is executed
 						--
 						-- When you move your cursor, the highlights will be cleared (the second autocommand).
 						local client = vim.lsp.get_client_by_id(event.data.client_id)
-						if
-							client
-							and client_supports_method(
-								client,
-								vim.lsp.protocol.Methods.textDocument_documentHighlight,
-								event.buf
-							)
-						then
+						if client then
 							local highlight_augroup =
 								vim.api.nvim_create_augroup("kickstart-lsp-highlight", { clear = false })
 							vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
@@ -505,14 +496,7 @@ require("lazy").setup({
 						-- code, if the language server you are using supports them
 						--
 						-- This may be unwanted, since they displace some of your code
-						if
-							client
-							and client_supports_method(
-								client,
-								vim.lsp.protocol.Methods.textDocument_inlayHint,
-								event.buf
-							)
-						then
+						if client then
 							map("<leader>th", function()
 								vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf }))
 							end, "[T]oggle Inlay [H]ints")
@@ -565,7 +549,7 @@ require("lazy").setup({
 				--  - settings (table): Override the default settings passed when initializing the server.
 				--        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
 				local servers = {
-					-- clangd = {},
+					clangd = {},
 					-- gopls = {},
 					-- pyright = {},
 					-- rust_analyzer = {},
@@ -667,7 +651,7 @@ require("lazy").setup({
 					-- Disable "format_on_save lsp_fallback" for languages that don't
 					-- have a well standardized coding style. You can add additional
 					-- languages here or re-enable it for the disabled ones.
-					local disable_filetypes = { c = true, cpp = true }
+					local disable_filetypes = { lang = true }
 					if disable_filetypes[vim.bo[bufnr].filetype] then
 						return nil
 					else
@@ -677,8 +661,28 @@ require("lazy").setup({
 						}
 					end
 				end,
+				formatters = {
+					customtypstyle = {
+						command = "typstyle",
+						args = { "--wrap-text", "--line-width", "80" },
+					},
+					remove_extra_newlines = {
+						command = "sd",
+						args = { "-p", "--across", "\n\n\n*", "\n\n" },
+					},
+				},
 				formatters_by_ft = {
 					lua = { "stylua" },
+					typst = { "customtypstyle", "remove_extra_newlines", "trim_newlines" },
+					c = { "clang-format" },
+					cpp = { "clang-format" },
+					html = { "biome-check" },
+					javascript = { "biome-check" },
+					typescript = { "biome-check" },
+					json = { "biome-check" },
+					jsonc = { "biome-check" },
+					css = { "biome-check" },
+					python = { "ruff_fix", "ruff_format", "ruff_organize_imports" },
 					-- Conform can also run multiple formatters sequentially
 					-- python = { "isort", "black" },
 					--
@@ -806,11 +810,14 @@ require("lazy").setup({
 				vim.cmd.colorscheme("kanagawa-dragon")
 			end,
 		},
-
+		-- {
+		-- 	"OXY2DEV/markview.nvim",
+		-- 	lazy = false,
+		-- },
 		-- Highlight todo, notes, etc in comments
 		{
 			"folke/todo-comments.nvim",
-			event = "VimEnter",
+			-- event = "VimEnter",
 			dependencies = { "nvim-lua/plenary.nvim" },
 			opts = { signs = false },
 		},
@@ -882,12 +889,25 @@ require("lazy").setup({
 							local location = "%L" -- statusline.section_location({ trunc_width = 1000 })
 							local search = statusline.section_searchcount({ trunc_width = 75 })
 
+							-- local symbols = require("trouble").statusline({
+							-- 	mode = "lsp_document_symbols",
+							-- 	groups = {},
+							-- 	title = false,
+							-- 	filter = { range = true },
+							-- 	format = "{kind_icon}{symbol.name:Normal}",
+							-- 	-- The following line is needed to fix the background color
+							-- 	-- Set it to the lualine section you want to use
+							-- 	hl_group = "lualine_c_normal",
+							-- })
+
 							return statusline.combine_groups({
 								{ hl = mode_hl, strings = { mode } },
 								{ hl = "MiniStatuslineDevinfo", strings = { git, diff, diagnostics } },
 								"%<", -- Mark general truncate point
 								{ hl = "MiniStatuslineFilename", strings = { filename() } },
 								"%=", -- End left alignment
+								-- { hl = "hostname", strings = { hostname } },
+								-- { hl = mode_hl, strings = { symbols.get() } },
 								{ hl = "MiniStatuslineFileinfo", strings = { fileinfo() } },
 								{ hl = mode_hl, strings = { search, location } },
 							})
@@ -906,6 +926,11 @@ require("lazy").setup({
 				-- ... and there is more!
 				--  Check out: https://github.com/echasnovski/mini.nvim
 			end,
+		},
+		{
+			"dmtrKovalenko/fold-imports.nvim",
+			opts = {},
+			event = "BufRead",
 		},
 		{
 			"nvim-tree/nvim-tree.lua",
@@ -968,6 +993,51 @@ require("lazy").setup({
 			end,
 		},
 
+		{
+			"folke/trouble.nvim",
+			opts = {}, -- for default options, refer to the configuration section for custom setup.
+			cmd = "Trouble",
+			keys = {
+				{
+					"<leader>xx",
+					"<cmd>Trouble diagnostics toggle<cr>",
+					desc = "Diagnostics (Trouble)",
+				},
+				{
+					"<leader>xX",
+					"<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+					desc = "Buffer Diagnostics (Trouble)",
+				},
+				{
+					"<leader>cs",
+					"<cmd>Trouble symbols toggle focus=false<cr>",
+					desc = "Symbols (Trouble)",
+				},
+				{
+					"<leader>cl",
+					"<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
+					desc = "LSP Definitions / references / ... (Trouble)",
+				},
+				{
+					"<leader>xL",
+					"<cmd>Trouble loclist toggle<cr>",
+					desc = "Location List (Trouble)",
+				},
+				{
+					"<leader>xQ",
+					"<cmd>Trouble qflist toggle<cr>",
+					desc = "Quickfix List (Trouble)",
+				},
+			},
+		},
+
+		{
+			"chomosuke/typst-preview.nvim",
+			lazy = false, -- or ft = 'typst'
+			version = "1.*",
+			opts = {}, -- lazy.nvim will implicitly calls `setup {}`
+		},
+
 		{ -- Highlight, edit, and navigate code
 			"nvim-treesitter/nvim-treesitter",
 			build = ":TSUpdate",
@@ -1009,6 +1079,19 @@ require("lazy").setup({
 		{
 			"nvim-treesitter/nvim-treesitter-context",
 		},
+	},
+	{
+		"sontungexpt/url-open",
+		branch = "mini",
+		event = "VeryLazy",
+		cmd = "URLOpenUnderCursor",
+		config = function()
+			local status_ok, url_open = pcall(require, "url-open")
+			if not status_ok then
+				return
+			end
+			url_open.setup({})
+		end,
 	},
 	{
 		ui = {
@@ -1064,7 +1147,7 @@ require("lazy").setup({
 --
 --
 -- -- Cpp config
--- vim.lsp.enable("clangd")
+vim.lsp.enable("clangd")
 --
 --
 -- vim.api.nvim_set_keymap("n", "<leader>x", ":XcodebuildPicker<cr>",
@@ -1130,7 +1213,7 @@ vim.lsp.config["tinymist"] = {
 	cmd = { "tinymist" },
 	filetypes = { "typst" },
 	settings = {
-		formatterMode = "typstyle --wrap-text",
+		formatterMode = "customtypstyle",
 		semanticTokens = "disable",
 	},
 }
@@ -1144,8 +1227,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	end,
 })
 
-vim.keymap.set("n", "]g", vim.diagnostic.goto_next)
-vim.keymap.set("n", "[g", vim.diagnostic.goto_prev)
+-- to be able to use WisprFlow or similar dictation apps
+vim.keymap.set("i", "<F5>", "<Nop>", { noremap = true, silent = true })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

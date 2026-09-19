@@ -1,0 +1,23 @@
+/Users/paramjit/Documents/4_gitclones
+/Users/paramjit/Documents/6_alumni.gh
+
+/Users/paramjit/Music/Music
+/Users/paramjit/Movies/TV
+
+/Users/paramjit/Pictures/Photos Library.photoslibrary
+
+**.cargo
+**.git
+**.next
+**.turbo
+**.venv
+**.yarn
+**.ruff_cache
+**.playwright
+**.playwright-cli
+node_modules
+
+**.DS_Store
+
+**.icloud-photos-sync
+.icloud-sync-trust.json

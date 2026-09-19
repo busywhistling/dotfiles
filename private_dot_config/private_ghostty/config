@@ -45,7 +45,11 @@
 macos-titlebar-style = tabs
 theme = "Kanagawa Dragon"
 
-# workflow heavily using tmux
+# workflow heavily using zellij
 # window-decoration = none
 # Unbind CMD+... keys so they will be forwarded to Zellij
 # keybind = cmd+t=unbind
+
+shell-integration-features = ssh-env,ssh-terminfo
+
+font-family = "Iosevka Term"

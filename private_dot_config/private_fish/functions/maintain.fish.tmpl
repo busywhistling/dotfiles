@@ -1,20 +1,85 @@
 function maintain
-  brew cu -qacy
-  brew upgrade
-  printf "\nBacking up brew bundle to ~/.config/Brewfile"
+  set -l timestamp_dir ~/.local/share/maintain
+  mkdir -p $timestamp_dir
 
+  function should_run -a timestamp_dir step_name time time_string
+    set -l timestamp_file $timestamp_dir/$step_name.timestamp
+    if test -f $timestamp_file
+      set -l last_run (cat $timestamp_file)
+      set -l six_hours_ago (math (date +%s) - $time)
+      if test "$last_run" -gt "$six_hours_ago"
+        printf "Skipping $step_name (last run < $time_string ago)\\n"
+        return 1
+      end
+    end
+    return 0
+  end
 
-  # Backing up homebrew
-  # backup your package list into the file: ~/Brewfile
-  brew bundle dump --file=~/.config/Brewfile --force
-  echo "To restore while keeping currently installed packages, use: brew bundle --file <brewfile>"
-  echo "To have only packages in the Brewfile and list cleaned packages: brew bundle cleanup"
-  echo "To actually delete those packages: brew bundle cleanup --force"
-  echo "To check the installation: brew bundle check"
-  echo "To list all Brewfile packages: brew bundle list"
+  function mark_run -a timestamp_dir step_name
+    date +%s > "$timestamp_dir/$step_name.timestamp"
+  end
 
-  # printf "\nAuto-updating hetzner containers..."
-  # ssh -t hetzner "podman auto-update"
+  if should_run $timestamp_dir timemachine_exclude 21600 "6 hours"
+    timemachine_exclude
+    mark_run $timestamp_dir timemachine_exclude
+  end
 
-  sync_repos
+  op read "op://Private/dummy/username" > /dev/null
+
+  if should_run $timestamp_dir brew 21600 "6 hours"
+    brew cu -qacy; brew upgrade --no-ask
+    agent-browser upgrade
+    printf "\nBacking up brew bundle to ~/.config/Brewfile-macbook\n"
+    brew bundle dump --file=~/.config/Brewfile-(hostname) --force
+    mark_run $timestamp_dir brew
+  end
+
+  if should_run $timestamp_dir mbsync 21600 "6 hours"
+    mbsync -a -c ~/.config/mbsyncrc
+    mark_run $timestamp_dir mbsync
+  end
+
+  # if should_run $timestamp_dir icloud_sync 21600 "6 hours"
+  #   icloud-sync --mfa-sms -u (op read "op://Private/{{ .op.items.cloudAccount }}/username") -p (op read "op://Private/{{ .op.items.cloudAccount }}/password") -d ~/Pictures/.icloud-backups/paramjit
+  #   icloud-sync --mfa-sms -u (op read "op://Private/{{ .op.items.cloudAccountFamily }}/username") -p (op read "op://Private/{{ .op.items.cloudAccountFamily }}/password") -d ~/Pictures/.icloud-backups/{{ .mail.tertiary.name }}
+  #   mark_run $timestamp_dir icloud_sync
+  # end
+
+  if test -d "/Volumes/MEDIA/Pictures"
+    if should_run $timestamp_dir rsync_pictures_to_ssd 21600 "6 hours"
+      rsync --archive --verbose --compress --progress --human-readable --delete ~/Pictures/ /Volumes/MEDIA/Pictures/
+      mark_run $timestamp_dir rsync_pictures_to_ssd
+    end
+  else
+    printf "Skipping rsync icloud-backups to external drive as it is not available...\n"
+  end
+
+  # ssh dietpi "sudo apt update; sudo apt upgrade --yes"
+
+  if should_run $timestamp_dir restic_backup_to_backblaze 21600 "6 hours"
+    restic_backup_to_backblaze
+    mark_run $timestamp_dir restic_backup_to_backblaze
+  end
+
+  if should_run $timestamp_dir sync_repos 21600 "6 hours"
+    sync_repos
+    mark_run $timestamp_dir sync_repos
+  end
+
+  
+  if should_run $timestamp_dir hetzner_maintain 21600 "6 hours"
+    printf "\n#################################################################\n"
+    echo "Maintaining hetzner"
+    ssh hetzner maintain
+    mark_run $timestamp_dir hetzner_maintain
+  end
+
+  if should_run $timestamp_dir mole 2629800 "1 month"
+    printf "\n#################################################################\n"
+    echo "Deep cleaning system"
+    mo clean
+    mark_run $timestamp_dir mole
+  end
+
+  functions -e should_run mark_run
 end
