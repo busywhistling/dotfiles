@@ -34,7 +34,6 @@
 
 .bun
 
-Applications
 Desktop
 Documents
 Downloads
@@ -42,10 +41,6 @@ Library
 Movies
 Music
 Pictures
-
-.ipython
-.jupyter
-.matplotlib
 
 .Trash
 .android
