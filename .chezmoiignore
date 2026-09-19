@@ -47,4 +47,5 @@ Pictures
 .config/op
 .config/sketchybar
 .config/mbsyncrc
+.config/Brewfile-macbook
 {{ end }}
