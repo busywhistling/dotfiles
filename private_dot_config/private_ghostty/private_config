@@ -42,7 +42,7 @@
 # # Just for example:
 # resize-overlay-duration = 4s 200ms
 
-macos-titlebar-style = tabs
+# macos-titlebar-style = tabs
 theme = "Kanagawa Dragon"
 
 # workflow heavily using zellij

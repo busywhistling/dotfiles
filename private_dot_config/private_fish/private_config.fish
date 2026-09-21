@@ -35,6 +35,8 @@ fish_ssh_agent
 set -gx HOMEBREW_REQUIRE_TAP_TRUST 1
 set -gx HOMEBREW_NO_ANALYTICS 1
 
+set -gx PYTHON_HISTORY ~/.local/share/python/python_history
+
 
 set -gx PATH "/Users/paramjit/.local/state/fnm_multishells/63708_1779105837510/bin" $PATH;
 set -gx FNM_MULTISHELL_PATH "/Users/paramjit/.local/state/fnm_multishells/63708_1779105837510";
@@ -45,3 +47,4 @@ set -gx FNM_NODE_DIST_MIRROR "https://nodejs.org/dist";
 set -gx FNM_COREPACK_ENABLED "false";
 set -gx FNM_RESOLVE_ENGINES "true";
 set -gx FNM_ARCH "arm64";
+
