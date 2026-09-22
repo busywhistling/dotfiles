@@ -4,6 +4,7 @@ tap "buo/cask-upgrade", trusted: true
 tap "cloudfoundry/tap", trusted: true
 tap "felixkratz/formulae", "https://github.com/FelixKratz/homebrew-formulae", trusted: true
 tap "mongodb/brew", trusted: true
+tap "oven-sh/bun"
 tap "pulumi/tap"
 # Simple, modern, secure file encryption
 brew "age"
@@ -330,6 +331,8 @@ brew "anomalyco/tap/opencode", trusted: true
 brew "felixkratz/formulae/sketchybar"
 # This package contains standard utilities for interacting with MongoDB.
 brew "mongodb/brew/mongodb-database-tools"
+# Incredibly fast JavaScript runtime, bundler, transpiler and package manager - all in one.
+brew "oven-sh/bun/bun", trusted: true
 # Pulumi - Modern Infrastructure as Code. Any cloud, any language 
 brew "pulumi/tap/pulumi", trusted: true
 # Password manager that keeps all passwords secure behind one password
