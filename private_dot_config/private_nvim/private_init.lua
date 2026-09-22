@@ -47,14 +47,15 @@ o.spelllang = "en_gb"
 -- local project_spells = require("utils").get_root_dir .. "/spell_en.utf-8.add"
 o.fillchars = { eob = " " }
 
-if hostname == "macbook" then
-	vim.schedule(function()
-		o.clipboard = "unnamedplus" -- sync clipboard between OS & nvim
-	end)
-	o.shell = "/opt/homebrew/bin/fish"
-elseif hostname == "hetzner" then
-	o.shell = "/home/linuxbrew/.linuxbrew/bin/fish"
-end
+o.clipboard = "unnamedplus" -- sync clipboard between OS & nvim
+o.shell = vim.env.SHELL
+-- if hostname == "macbook" then
+-- 	vim.schedule(function()
+-- 	end)
+-- 	o.shell = "/opt/homebrew/bin/fish"
+-- elseif hostname == "hetzner" then
+-- 	o.shell = "/home/linuxbrew/.linuxbrew/bin/fish"
+-- end
 
 local g = vim.g
 g.mapleader = " "

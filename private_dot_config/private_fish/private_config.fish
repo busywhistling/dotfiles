@@ -22,10 +22,10 @@ set -gx HOMEBREW_DOWNLOAD_CONCURRENCY "auto"
 set -gx EDITOR nvim
 set -gx HOMEBREW_PREFIX (brew --prefix)
 
-set -l file (brew --prefix)/etc/profile.d/autojump.fish
+set -l file $HOMEBREW_PREFIX/etc/profile.d/autojump.fish
 test -s "$file"; and source $file
 
-[ -f /opt/homebrew/share/autojump/autojump.fish ]; and source /opt/homebrew/share/autojump/autojump.fish
+[ -f $HOMEBREW_PREFIX/share/autojump/autojump.fish ]; and source $HOMEBREW_PREFIX/share/autojump/autojump.fish
 
 set -gx GOPATH "$HOME/.local/go"
 

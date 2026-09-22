@@ -4,5 +4,5 @@ function bare_opencode --wraps opencode
     {{ .ai.env.primary }}=(op read "op://{{ .op.aiVault }}/{{ .op.items.aiPrimary }}/Anmeldedaten") \
     {{ .ai.env.proxy }}=(op read "op://{{ .op.aiVault }}/{{ .op.items.aiProxy }}/Anmeldedaten") \
     {{ .ai.env.docs }}=(op read "op://Personal/{{ .op.items.docsSearch }}/Anmeldedaten") \
-    /opt/homebrew/bin/opencode $argv
+    $HOMEBREW_PREFIX/bin/opencode $argv
 end
