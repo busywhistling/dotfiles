@@ -1,3 +1,3 @@
 function rg
-  /opt/homebrew/bin/rg --hyperlink-format=kitty $argv
+  $HOMEBREW_PREFIX/bin/rg --hyperlink-format=kitty $argv
 end

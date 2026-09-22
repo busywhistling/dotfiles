@@ -20,6 +20,7 @@ end
 
 set -gx HOMEBREW_DOWNLOAD_CONCURRENCY "auto"
 set -gx EDITOR nvim
+set -gx HOMEBREW_PREFIX (brew --prefix)
 
 set -l file (brew --prefix)/etc/profile.d/autojump.fish
 test -s "$file"; and source $file
