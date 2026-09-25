@@ -47,7 +47,7 @@ function maintain
 
   if test -d "/Volumes/MEDIA/Pictures"
     if should_run $timestamp_dir rsync_pictures_to_ssd 21600 "6 hours"
-      rsync --archive --verbose --compress --progress --human-readable --delete --exclude-from=/Users/paramjit/Pictures/photoslibrary_rsync_excludes.txt ~/Pictures/ /Volumes/MEDIA/Pictures/
+      rsync --archive --verbose --compress --progress --human-readable --delete --exclude='Photos Library.photoslibrary/' --exclude='Photo Booth-Mediathek/' ~/Pictures/ /Volumes/MEDIA/Pictures/
       mark_run $timestamp_dir rsync_pictures_to_ssd
     end
   else
