@@ -415,7 +415,6 @@ cask "whatsapp"
 cask "wispr-flow"
 # Video communication and virtual meeting platform
 cask "zoom"
-uv "abogen", with: ["kokoro git+https://github.com/hexgrad/kokoro.git", "numpy<2"]
 uv "motheme"
 npm "@anthropic-ai/claude-code"
 npm "@mariozechner/pi-coding-agent"
