@@ -355,8 +355,6 @@ cask "androidtool"
 cask "anki"
 # Tool to flash OS images to SD cards & USB drives
 cask "balenaetcher"
-# Universal chat app powered by Matrix
-cask "beeper"
 # 3D creation suite
 cask "blender"
 # Privacy-focused web browser
