@@ -1,0 +1,7 @@
+function sync_media_library
+    cd {{ .media.projectDir }}
+    uv sync --upgrade
+    uv run src/main.py
+    git commit -am "chore: update media library"
+    git push
+end

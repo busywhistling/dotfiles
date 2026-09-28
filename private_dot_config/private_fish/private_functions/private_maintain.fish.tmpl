@@ -54,6 +54,15 @@ function maintain
     printf "Skipping rsync icloud-backups to external drive as it is not available...\n"
   end
 
+  if test -d "{{ .media.libraryDir }}"
+    if should_run $timestamp_dir sync_media 21600 "6 hours"
+      sync_media_library
+      mark_run $timestamp_dir sync_media
+    end
+  else 
+    printf "Skipping media library sync as external drive is not available...\n"
+  end
+
   # ssh dietpi "sudo apt update; sudo apt upgrade --yes"
 
   if should_run $timestamp_dir restic_backup_to_backblaze 21600 "6 hours"
