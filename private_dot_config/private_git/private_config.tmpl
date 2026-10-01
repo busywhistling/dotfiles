@@ -13,7 +13,7 @@
 [core]
   ignorecase = false
   sshCommand = "ssh -o IdentitiesOnly=yes -i ~/.ssh/id_macbook"
-	pager = hunk pager
+	pager = delta
   # pager = hunk pager
 [credential]
   helper = osxkeychain
@@ -45,3 +45,10 @@
 [rebase]
 	instructionFormat = %s [%ad]
 
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+	dark = true
+[merge]
+	conflictStyle = zdiff3

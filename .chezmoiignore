@@ -14,7 +14,6 @@ README.md  # to keep it in repo without applying it
 .cups
 .gnupg
 .homebrew
-.hunk
 .local
 .nono
 .npm
@@ -38,7 +37,6 @@ Pictures
 .config/containers
 .config/fish/fish_variables
 .config/fish/fishd.tmp.*
-.config/hunk/state.json
 .config/karabiner/automatic_backups
 .config/nono/packages
 .config/nono/pack-update-hints.json
