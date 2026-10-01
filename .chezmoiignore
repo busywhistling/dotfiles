@@ -42,6 +42,7 @@ Pictures
 .config/nono/pack-update-hints.json
 .config/op
 .config/opencode/node_modules
+.config/opencode/service.json
 
 {{ if ne .chezmoi.hostname "macbook" }}
 .config/1Password
