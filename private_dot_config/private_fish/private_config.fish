@@ -31,32 +31,8 @@ set -gx GOPATH "$HOME/.local/go"
 
 fish_ssh_agent
 
-
 # set -gx UV_MALWARE_CHECK 1
 set -gx HOMEBREW_REQUIRE_TAP_TRUST 1
 set -gx HOMEBREW_NO_ANALYTICS 1
 
 set -gx PYTHON_HISTORY ~/.local/share/python/python_history
-
-
-set -gx PATH "$HOME/.local/state/fnm_multishells/63708_1779105837510/bin" $PATH;
-set -gx FNM_MULTISHELL_PATH "$HOME/.local/state/fnm_multishells/63708_1779105837510";
-set -gx FNM_VERSION_FILE_STRATEGY "local";
-if test (uname) = "Darwin"
-    set -gx FNM_DIR "$HOME/Library/Application Support/fnm"
-else
-    set -gx FNM_DIR "$HOME/.local/share/fnm"
-end
-set -gx FNM_LOGLEVEL "info";
-set -gx FNM_NODE_DIST_MIRROR "https://nodejs.org/dist";
-set -gx FNM_COREPACK_ENABLED "false";
-set -gx FNM_RESOLVE_ENGINES "true";
-set -gx FNM_ARCH "arm64";
-
-# FNM_ARCH: arm64 is correct for both Apple Silicon and Linux aarch64
-# Only override if you have an x86_64 Linux machine
-if test (uname) = "Linux" -a (uname -m) = "x86_64"
-    set -gx FNM_ARCH "x64"
-end
-
-fnm env --use-on-cd --shell fish | source
