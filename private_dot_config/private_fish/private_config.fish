@@ -36,3 +36,5 @@ set -gx HOMEBREW_REQUIRE_TAP_TRUST 1
 set -gx HOMEBREW_NO_ANALYTICS 1
 
 set -gx PYTHON_HISTORY ~/.local/share/python/python_history
+
+zoxide init fish | source
