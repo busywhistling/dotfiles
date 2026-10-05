@@ -4,4 +4,6 @@ function sync_media_library
     uv run src/main.py
     git commit -am "chore: update media library"
     git push
+
+    uv run src/main.py --delete-local
 end
