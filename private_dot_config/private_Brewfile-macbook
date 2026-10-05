@@ -26,8 +26,6 @@ brew "libpng"
 brew "asciinema"
 # Automatically exclude development dependencies from Time Machine backups
 brew "asimov", restart_service: :changed
-# Shell extension to jump to frequently used directories
-brew "autojump"
 # Official Amazon AWS command-line interface
 brew "awscli"
 # Clone of cat(1) with syntax highlighting and Git integration
@@ -152,6 +150,8 @@ brew "graphicsmagick"
 brew "hub"
 # Configurable static site generator
 brew "hugo"
+# Command-line benchmarking tool
+brew "hyperfine"
 # Tools and libraries to manipulate images in select formats
 brew "imagemagick"
 # Command-line interface for self-hosted photo manager Immich
