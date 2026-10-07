@@ -37,4 +37,5 @@ set -gx HOMEBREW_NO_ANALYTICS 1
 
 set -gx PYTHON_HISTORY ~/.local/share/python/python_history
 
+set -gx _ZO_EXCLUDE_DIRS "$HOME:$HOME/Documents/4_gitclones/*"
 zoxide init fish | source
