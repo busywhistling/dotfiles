@@ -41,4 +41,6 @@ set -gx _ZO_EXCLUDE_DIRS "$HOME:$HOME/Documents/4_gitclones/*"
 zoxide init fish | source
 
 
-source /Users/paramjit/.config/op/plugins.sh
+if test (hostname) = macbook
+  source /Users/paramjit/.config/op/plugins.sh
+end
