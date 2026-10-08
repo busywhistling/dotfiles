@@ -172,8 +172,6 @@ brew "lazydocker"
 brew "lazygit"
 # Command-line, double-entry accounting tool
 brew "ledger"
-# Fast and powerful Git hooks manager for any type of projects
-brew "lefthook"
 # Sophisticated file transfer program
 brew "lftp"
 # Library to render SVG files using Cairo
