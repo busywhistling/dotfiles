@@ -39,3 +39,6 @@ set -gx PYTHON_HISTORY ~/.local/share/python/python_history
 
 set -gx _ZO_EXCLUDE_DIRS "$HOME:$HOME/Documents/4_gitclones/*"
 zoxide init fish | source
+
+
+source /Users/paramjit/.config/op/plugins.sh
