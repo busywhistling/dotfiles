@@ -14,6 +14,8 @@ exclude = [
   "/Users/paramjit/.android",
   "/Users/paramjit/.bun",
   "/Users/paramjit/.cargo",
+  "/Users/paramjit/.claude",
+  "/Users/paramjit/.claude.json",
   "/Users/paramjit/.cups",
   "/Users/paramjit/.homebrew",
   "/Users/paramjit/.nono",
