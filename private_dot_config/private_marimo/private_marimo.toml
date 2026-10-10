@@ -69,7 +69,7 @@ watcher_on_save = "lazy"
 [save]
 autosave = "after_delay"
 autosave_delay = 1000
-format_on_save = false
+format_on_save = true
 
 [server]
 browser = "default"
