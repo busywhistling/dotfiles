@@ -18,6 +18,7 @@ exclude = [
   "/Users/paramjit/.claude.json",
   "/Users/paramjit/.cups",
   "/Users/paramjit/.homebrew",
+  "/Users/paramjit/.hushlogin",
   "/Users/paramjit/.nono",
   "/Users/paramjit/.npm",
   "/Users/paramjit/.pulumi",
