@@ -10,8 +10,6 @@ tap "pulumi/tap"
 brew "age"
 # Open-source, cross-platform JavaScript runtime environment
 brew "node"
-# Cryptography and SSL/TLS Toolkit
-brew "openssl@3"
 # Browser automation CLI for AI agents
 brew "agent-browser"
 # Codec library for encoding and decoding AV1 video streams
@@ -28,6 +26,8 @@ brew "asciinema"
 brew "asimov", restart_service: :changed
 # Official Amazon AWS command-line interface
 brew "awscli"
+# Cryptography and SSL/TLS Toolkit
+brew "openssl@3"
 # Clone of cat(1) with syntax highlighting and Git integration
 brew "bat"
 # Toolchain of the web
@@ -146,6 +146,8 @@ brew "goaccess"
 brew "gobuster"
 # Image processing tools collection
 brew "graphicsmagick"
+# Client library for huggingface.co hub
+brew "hf"
 # Add GitHub support to git on the command-line
 brew "hub"
 # Configurable static site generator
@@ -263,6 +265,8 @@ brew "restic"
 brew "ripgrep"
 # Utility that provides fast incremental file transfer
 brew "rsync"
+# Extremely fast Python linter, written in Rust
+brew "ruff"
 # Safe, concurrent, practical language
 brew "rust"
 # Rust toolchain installer
@@ -355,6 +359,8 @@ cask "androidtool"
 cask "anki"
 # Tool to flash OS images to SD cards & USB drives
 cask "balenaetcher"
+# Universal chat app powered by Matrix
+cask "beeper"
 # 3D creation suite
 cask "blender"
 # Privacy-focused web browser
@@ -363,6 +369,8 @@ cask "brave-origin"
 cask "bruno"
 # Calendar software focusing on flexibility and reliability
 cask "busycal"
+# Terminal-based AI coding assistant
+cask "claude-code"
 # Voice and text chat software
 cask "discord"
 cask "font-fira-code"

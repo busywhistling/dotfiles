@@ -19,17 +19,18 @@ function maintain
     date +%s > "$timestamp_dir/$step_name.timestamp"
   end
 
-  if should_run $timestamp_dir timemachine_exclude 21600 "6 hours"
-    timemachine_exclude
-    mark_run $timestamp_dir timemachine_exclude
+  if test (hostname) = macbook
+    if should_run $timestamp_dir timemachine_exclude 21600 "6 hours"
+      timemachine_exclude
+      mark_run $timestamp_dir timemachine_exclude
+    end
+    op read "op://Private/dummy/username" > /dev/null
   end
-
-  op read "op://Private/dummy/username" > /dev/null
 
   if should_run $timestamp_dir brew 21600 "6 hours"
     brew cu -qacy; brew upgrade --no-ask
     agent-browser upgrade
-    printf "\nBacking up brew bundle to ~/.config/Brewfile-macbook\n"
+    printf "\nBacking up brew bundle to ~/.config/Brewfile-$hostname\n"
     brew bundle dump --file=~/.config/Brewfile-(hostname) --force
     mark_run $timestamp_dir brew
   end
