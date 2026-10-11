@@ -82,6 +82,14 @@ function maintain
     sudo apt update; sudo apt upgrade --yes
   end
 
+  if test (hostname) = hetzner
+    if should_run $timestamp_dir podman_maintain 21600 "6 hours"
+      podman auto-update
+      podman system prune --all --volumes
+      mark_run $timestamp_dir podman_maintain
+    end
+  end
+
   if should_run $timestamp_dir brew 21600 "6 hours"
     brew cu -qacy; brew upgrade --no-ask
     agent-browser upgrade
