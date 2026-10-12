@@ -21,6 +21,7 @@ exclude = [
   "/Users/paramjit/.gnupg",
   "/Users/paramjit/.homebrew",
   "/Users/paramjit/.hushlogin",
+  "/Users/paramjit/.local/state",
   "/Users/paramjit/.nono",
   "/Users/paramjit/.npm",
   "/Users/paramjit/.pulumi",
