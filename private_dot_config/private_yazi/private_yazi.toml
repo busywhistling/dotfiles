@@ -13,6 +13,7 @@ exclude = [
   "/Users/paramjit/.agent-browser",
   "/Users/paramjit/.android",
   "/Users/paramjit/.bun",
+  "/Users/paramjit/.cache",
   "/Users/paramjit/.cargo",
   "/Users/paramjit/.claude",
   "/Users/paramjit/.claude.json",
