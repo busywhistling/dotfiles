@@ -7,9 +7,6 @@ README.md  # to keep it in repo without applying it
 
 .agent-browser
 .android
-.aws/cli
-.aws/credentials
-.aws/sso
 .bun
 .cache
 .cargo

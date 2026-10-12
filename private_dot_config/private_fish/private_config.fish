@@ -44,3 +44,6 @@ zoxide init fish | source
 if test (hostname) = macbook
   source /Users/paramjit/.config/op/plugins.sh
 end
+
+set -gx AWS_CONFIG_FILE ~/.config/aws/config
+# AWS_SHARED_CREDENTIALS_FILE
