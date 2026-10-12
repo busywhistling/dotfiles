@@ -92,7 +92,9 @@ function maintain
 
   if should_run $timestamp_dir brew 21600 "6 hours"
     brew cu -qacy; brew upgrade --no-ask
-    agent-browser upgrade
+    if command -sq agent-browser
+      agent-browser upgrade
+    end
     printf "\nBacking up brew bundle to ~/.config/Brewfile-$hostname\n"
     brew bundle dump --file=~/.config/Brewfile-(hostname) --force
     mark_run $timestamp_dir brew
