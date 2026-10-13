@@ -45,6 +45,9 @@
 [rebase]
 	instructionFormat = %s [%ad]
 
+# Make sure the `includeIf` path is not a symlink
+# [includeIf "gitdir:~/Documents/"]
+#   path = "/Users/paramjit/Documents/.gitconfig"
 [interactive]
 	diffFilter = delta --color-only
 [delta]
