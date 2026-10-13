@@ -291,8 +291,6 @@ brew "tfenv"
 brew "tidy-html5"
 # Services for Typst
 brew "tinymist"
-# Display directories as trees (with optional color/HTML output)
-brew "tree"
 # Parser generator tool
 brew "tree-sitter-cli"
 # Markup-based typesetting system
