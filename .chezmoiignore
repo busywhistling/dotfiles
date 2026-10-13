@@ -20,7 +20,9 @@ README.md  # to keep it in repo without applying it
 .npm
 .pulumi
 .rustup
-.ssh
+.ssh/agent
+.ssh/environment
+.ssh/known_hosts*
 .thumbnails
 .Trash
 Desktop

@@ -1,0 +1,10 @@
+Include /Users/paramjit/.colima/ssh_config
+AddKeysToAgent yes
+
+Host hetzner
+  HostName {{ .vps.host }}
+  Port {{ .vps.port }}
+  User paramjit
+
+Host *
+  IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"

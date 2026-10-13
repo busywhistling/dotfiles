@@ -6,13 +6,12 @@
   useConfigOnly = true
   name = {{ .fullName }}
   email = {{ .email }}
-  signingkey = ~/.ssh/id_macbook.pub
+	signingkey = {{ .sshSigningKey }}
 
 [log]
   date = local
 [core]
   ignorecase = false
-  sshCommand = "ssh -o IdentitiesOnly=yes -i ~/.ssh/id_macbook"
 	pager = delta
   # pager = hunk pager
 [credential]
@@ -32,6 +31,7 @@
   format = ssh
 [gpg "ssh"]
   allowedSignersFile = ~/.config/git/allowed_signers
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
 [format]
   signoff = true
 [commit]
