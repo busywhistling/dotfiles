@@ -1,5 +1,5 @@
 function maintain
-  set -l timestamp_dir ~/.local/share/maintain
+  set -l timestamp_dir ~/.cache/maintain
   mkdir -p $timestamp_dir
 
   function should_run -a timestamp_dir step_name time time_string

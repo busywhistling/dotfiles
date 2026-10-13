@@ -5,10 +5,6 @@ show_hidden = true
 exclude = [
   ".DS_Store",          # exact filename
   "Thumbs.db",          # exact filename
-  "/Users/paramjit/Desktop",
-  "/Users/paramjit/Movies",
-  "/Users/paramjit/Library",
-  "/Users/paramjit/Music/Music",
   "/Users/paramjit/.Trash",
   "/Users/paramjit/.agent-browser",
   "/Users/paramjit/.android",
@@ -21,12 +17,17 @@ exclude = [
   "/Users/paramjit/.gnupg",
   "/Users/paramjit/.homebrew",
   "/Users/paramjit/.hushlogin",
+  "/Users/paramjit/.local",
   "/Users/paramjit/.local/state",
   "/Users/paramjit/.nono",
   "/Users/paramjit/.npm",
   "/Users/paramjit/.pulumi",
   "/Users/paramjit/.rustup",
   "/Users/paramjit/.thumbnails",
+  "/Users/paramjit/Desktop",
+  "/Users/paramjit/Library",
+  "/Users/paramjit/Movies",
+  "/Users/paramjit/Music/Music",
   "*.pyc",              # filename glob (matches anywhere)
   "*.o",
   "__pycache__",        # bare directory name
