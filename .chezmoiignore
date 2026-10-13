@@ -32,7 +32,7 @@ Movies
 Music
 Pictures
 
-.config/1Password/telemetry-enabled
+.config/1Password
 .config/btop/btop.log
 .config/chezmoi
 .config/configstore
@@ -48,7 +48,6 @@ Pictures
 .config/opencode/service.json
 
 {{ if ne .chezmoi.hostname "macbook" }}
-.config/1Password
 .config/karabiner
 .config/op
 .config/sketchybar
