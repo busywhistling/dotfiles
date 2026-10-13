@@ -15,6 +15,7 @@ exclude = [
   "/Users/paramjit/.claude.json",
   "/Users/paramjit/.cups",
   "/Users/paramjit/.gnupg",
+  "/Users/paramjit/.ssh",
   "/Users/paramjit/.homebrew",
   "/Users/paramjit/.hushlogin",
   "/Users/paramjit/.local",
