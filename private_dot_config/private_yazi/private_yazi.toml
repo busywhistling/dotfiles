@@ -8,6 +8,7 @@ exclude = [
   "/Users/paramjit/.Trash",
   "/Users/paramjit/.agent-browser",
   "/Users/paramjit/.android",
+  "/Users/paramjit/.aws",
   "/Users/paramjit/.bun",
   "/Users/paramjit/.cache",
   "/Users/paramjit/.cargo",
