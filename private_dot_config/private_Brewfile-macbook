@@ -24,14 +24,9 @@ brew "clang-format"  # Formatting tools for C, C++, Obj-C, Java, JavaScript, Typ
 brew "cloc"  # Statistics utility to count lines of code
 brew "cmake"  # Cross-platform make
 brew "coreutils"  # GNU File, Shell, and Text utilities
-brew "ctpv"  # Image previews for lf file manager
 brew "curl"  # Get a file from an HTTP, HTTPS or FTP server
-brew "diff-so-fancy"  # Good-lookin' diffs with diff-highlight and more
-brew "docker-compose"  # Isolated development environments using Docker
-brew "docker"  # Pack, ship and run any application as a lightweight container
 brew "dua-cli"  # View disk space usage and delete unwanted data, fast
 brew "duf"  # Disk Usage/Free Utility - a better 'df' alternative
-brew "espeak-ng"  # Speech synthesizer that supports more than hundred languages and accents
 brew "eza"  # Modern, maintained replacement for ls
 brew "fastfetch"  # Like neofetch, but much faster because written mostly in C
 brew "fd"  # Simple, fast and user-friendly alternative to find
@@ -41,31 +36,25 @@ brew "figlet"  # Banner-like program prints strings as ASCII art
 brew "fish-lsp"  # LSP implementation for the fish shell language
 brew "fish"  # User-friendly command-line shell for UNIX-like operating systems
 brew "fnm"  # Fast and simple Node.js version manager
+brew "fzf"  # Command-line fuzzy finder written in Go
 brew "gh"  # GitHub command-line tool
 brew "ghostscript"  # Interpreter for PostScript and PDF
-brew "git-cinnabar"  # Git remote helper to interact with mercurial repositories
-brew "git-crypt"  # Enable transparent encryption/decryption of files in a git repo
 brew "git-delta"  # Syntax-highlighting pager for git and diff output
 brew "git-filter-repo"  # Quickly rewrite git repository history
 brew "git"  # Distributed revision control system
-brew "gitui"  # Blazing fast terminal-ui for git written in rust
 brew "glow"  # Render markdown on the CLI
-brew "gnu-sed"  # GNU implementation of the famous stream editor
 brew "go"  # Open source programming language to build simple/reliable/efficient software
 brew "goaccess"  # Log analyzer and interactive viewer for the Apache Webserver
-brew "gobuster"  # Directory/file & DNS busting tool written in Go
 brew "graphicsmagick"  # Image processing tools collection
 brew "hf"  # Client library for huggingface.co hub
 brew "hub"  # Add GitHub support to git on the command-line
 brew "hugo"  # Configurable static site generator
 brew "hyperfine"  # Command-line benchmarking tool
 brew "imagemagick"  # Tools and libraries to manipulate images in select formats
-brew "immich-cli"  # Command-line interface for self-hosted photo manager Immich
 brew "isync"  # Synchronize a maildir with an IMAP server
 brew "jpeg"  # Image manipulation library
 brew "jq"  # Lightweight and flexible command-line JSON processor
 brew "just"  # Handy way to save and run project-specific commands
-brew "kcat"  # Generic command-line non-JVM Apache Kafka producer and consumer
 brew "lazydocker"  # Lazier way to manage everything docker
 brew "lazygit"  # Simple terminal UI for git commands
 brew "ledger"  # Command-line, double-entry accounting tool
@@ -81,28 +70,18 @@ brew "mole"  # Deep clean and optimize your Mac
 brew "moreutils"  # Collection of tools that nobody wrote when UNIX was young
 brew "mpv"  # Media player based on MPlayer and mplayer2
 brew "msmtp"  # SMTP client that can be used as an SMTP plugin for Mutt
-brew "navi"  # Interactive cheatsheet tool for the command-line
 brew "ncdu"  # NCurses Disk Usage
 brew "neomutt"  # E-mail reader with support for Notmuch, NNTP and much more
 brew "neovim"  # Ambitious Vim-fork focused on extensibility and agility
 brew "nmap"  # Port scanning utility for large networks
-brew "node@20"  # Open-source, cross-platform JavaScript runtime environment
 brew "nono"  # Capability-based sandbox shell for AI agents with OS-enforced isolation
-brew "nowplaying-cli"  # Retrieves currently playing media, and simulates media actions
 brew "pandoc"  # Swiss-army knife of markup format conversion
-brew "pdftoipe"  # Reads arbitrary PDF files and generates an XML file readable by Ipe
-brew "pinentry-mac"  # Pinentry for GPG on Mac
-brew "pipx"  # Execute binaries from Python packages in isolated environments
-brew "playwright-cli"  # CLI for Playwright: record/generate code, inspect selectors, take screenshots
-brew "pnpm"  # Fast, disk space efficient package manager
+brew "pillow"  # Friendly PIL fork (Python Imaging Library)
 brew "podlet"  # Generate podman quadlet files from a podman command or compose file
 brew "podman"  # Tool for managing OCI containers and pods
 brew "posting"  # Modern API client that lives in your terminal
 brew "presenterm"  # Terminal slideshow tool
 brew "procs"  # Modern replacement for ps written in Rust
-brew "pup"  # CLI companion with 200+ commands across 33+ Datadog products
-brew "python@3.11"  # Interpreted, interactive, object-oriented programming language
-brew "python@3.12"  # Interpreted, interactive, object-oriented programming language
 brew "qemu"  # Generic machine emulator and virtualizer
 brew "restic"  # Fast, efficient and secure backup program
 brew "rsync"  # Utility that provides fast incremental file transfer
@@ -112,11 +91,9 @@ brew "rustup"  # Rust toolchain installer
 brew "scrcpy"  # Display and control your Android device
 brew "sd"  # Intuitive find & replace CLI
 brew "socat"  # SOcket CAT: netcat on steroids
-brew "sshuttle"  # Proxy server that works as a poor man's VPN
 brew "stockfish"  # Strong open-source chess engine
 brew "swiftformat"  # Formatting tool for reformatting Swift code
 brew "termshark"  # Terminal UI for tshark, inspired by Wireshark
-brew "tfenv"  # Terraform version manager inspired by rbenv
 brew "tidy-html5"  # Granddaddy of HTML tools, with support for modern standards
 brew "tinymist"  # Services for Typst
 brew "tree-sitter-cli"  # Parser generator tool
@@ -127,10 +104,8 @@ brew "virtualenv"  # Tool for creating isolated virtual python environments
 brew "viu"  # Simple terminal image viewer written in Rust
 brew "vnstat"  # Console-based network traffic monitor
 brew "wakeonlan"  # Sends magic packets to wake up network-devices
-brew "weasyprint"  # Convert HTML to PDF
 brew "wget"  # Internet file retriever
 brew "with-readline"  # Allow GNU Readline to be used with arbitrary programs
-brew "witr"  # Why is this running?
 brew "yazi"  # Blazing fast terminal file manager written in Rust, based on async I/O
 brew "zig"  # Programming language designed for robustness, optimality, and clarity
 brew "zoxide"  # Shell extension to navigate your filesystem faster
@@ -170,6 +145,7 @@ cask "obsidian"  # Knowledge base that works on top of a local folder of plain t
 cask "openvpn-connect"  # Client program for the OpenVPN Access Server
 cask "podman-desktop"  # Browse, manage, inspect containers and images
 cask "popclip"  # Used to access context-specific actions when text is selected
+cask "sf-symbols"  # Tool that provides consistent, highly configurable symbols for apps
 cask "slack"  # Team communication and collaboration software
 cask "utm"  # Virtual machines UI using QEMU
 cask "voiceink"  # Voice to text app

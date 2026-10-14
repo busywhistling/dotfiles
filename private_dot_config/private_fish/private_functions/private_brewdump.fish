@@ -34,6 +34,7 @@ function brewdump --description 'Generate a Brewfile with only explicitly instal
     end > $out
 
     rm -f $tmp $lv
+    chmod 600 $out
 
     set lines (cat $out | wc -l | string trim)
     echo "Written: $out ($lines lines)"
