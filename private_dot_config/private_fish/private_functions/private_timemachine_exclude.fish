@@ -33,7 +33,7 @@ function timemachine_exclude
   sudo tmutil addexclusion -p /Users/paramjit/Library/Containers/com.utmapp.QEMUHelper/
   sudo tmutil addexclusion -p /Users/paramjit/Downloads/iso/
 
-
+  sudo tmutil addexclusion -p /Users/paramjit/.lima/_disks
   sudo tmutil addexclusion -p /Users/paramjit/.android
   sudo tmutil addexclusion -p /Users/paramjit/.cache
   sudo tmutil addexclusion -p /Users/paramjit/.nono

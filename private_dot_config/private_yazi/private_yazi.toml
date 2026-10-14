@@ -21,6 +21,7 @@ exclude = [
   "/Users/paramjit/.config/karabiner/automatic_backups",
   "/Users/paramjit/.cups",
   "/Users/paramjit/.gnupg",
+  "/Users/paramjit/.lima",
   "/Users/paramjit/.homebrew",
   "/Users/paramjit/.hushlogin",
   "/Users/paramjit/.local",

@@ -16,6 +16,7 @@ README.md  # to keep it in repo without applying it
 .cups
 .gnupg
 .homebrew
+.lima
 .local
 .nono
 .npm
