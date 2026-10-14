@@ -43,6 +43,7 @@ Pictures
 .config/karabiner/automatic_backups
 .config/nono/packages
 .config/nono/pack-update-hints.json
+.config/nono/profile-drafts
 .config/op
 .config/opencode/node_modules
 .config/opencode/opencode-notifier-state.json
