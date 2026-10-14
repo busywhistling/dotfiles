@@ -96,7 +96,7 @@ function maintain
       agent-browser upgrade
     end
     printf "\nBacking up brew bundle to ~/.config/Brewfile-$hostname\n"
-    brew bundle dump --file=~/.config/Brewfile-(hostname) --force
+    brewdump
     mark_run $timestamp_dir brew
   end
 
