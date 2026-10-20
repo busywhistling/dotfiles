@@ -79,6 +79,7 @@ brew "pandoc"  # Swiss-army knife of markup format conversion
 brew "pillow"  # Friendly PIL fork (Python Imaging Library)
 brew "podlet"  # Generate podman quadlet files from a podman command or compose file
 brew "podman"  # Tool for managing OCI containers and pods
+brew "poppler"  # PDF rendering library (based on the xpdf-3.0 code base)
 brew "posting"  # Modern API client that lives in your terminal
 brew "presenterm"  # Terminal slideshow tool
 brew "procs"  # Modern replacement for ps written in Rust
