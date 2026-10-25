@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>dev.paramjit.push-screenshots</string>
+
+	<key>ProgramArguments</key>
+	<array>
+		<string>{{ .chezmoi.homeDir }}/.local/bin/push-screenshots</string>
+	</array>
+
+	<!-- Fire whenever something appears in (or changes inside) the Screenshots folder,
+	     and once at login to catch anything left over. -->
+	<key>WatchPaths</key>
+	<array>
+		<string>{{ .chezmoi.homeDir }}/Pictures/Screenshots</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+
+	<!-- Coalesce bursts of new screenshots into one import run. -->
+	<key>ThrottleInterval</key>
+	<integer>60</integer>
+
+	<key>ProcessType</key>
+	<string>Background</string>
+
+	<key>StandardOutPath</key>
+	<string>{{ .chezmoi.homeDir }}/.local/state/push-screenshots/launchd.out.log</string>
+	<key>StandardErrorPath</key>
+	<string>{{ .chezmoi.homeDir }}/.local/state/push-screenshots/launchd.err.log</string>
+</dict>
+</plist>

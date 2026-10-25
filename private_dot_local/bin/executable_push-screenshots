@@ -1,0 +1,199 @@
+#!/usr/bin/env bash
+# push-screenshots — import screenshots into the iCloud Photos library, then remove local files.
+#
+# Uses the macOS Photos app as the upload agent: files are imported into the
+# (cloud-resident) Photos library, which syncs to iCloud asynchronously — so the
+# local copy can be trashed immediately after import, even before the network
+# upload finishes.
+#
+# Idempotent: content hashes of imported files are recorded in a manifest and
+# skipped on subsequent runs.
+#
+# Usage: push-screenshots [OPTIONS]
+#   --dry-run       list what would be imported, change nothing
+#   --source DIR    screenshots folder (default ~/Pictures/Screenshots)
+#   --album NAME    target Photos album (default "Screenshots")
+#   --chunk N       files per AppleScript import call (default 40)
+#   --limit N       stop after N files (for testing)
+#   -h, --help      show this help
+set -euo pipefail
+
+SRC="${HOME}/Pictures/Screenshots"
+ALBUM="Screenshots"
+CHUNK=40
+DRY_RUN=0
+LIMIT=0
+STATE_DIR="${HOME}/.local/state/push-screenshots"
+MANIFEST="${STATE_DIR}/manifest.tsv"
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --dry-run) DRY_RUN=1; shift ;;
+        --source)  SRC="$2"; shift 2 ;;
+        --album)   ALBUM="$2"; shift 2 ;;
+        --chunk)   CHUNK="$2"; shift 2 ;;
+        --limit)   LIMIT="$2"; shift 2 ;;
+        -h|--help)
+            sed -n '14,20p' "$0"; exit 0 ;;
+        *)
+            echo "unknown option: $1" >&2; exit 1 ;;
+    esac
+done
+
+mkdir -p "$STATE_DIR"
+touch "$MANIFEST"
+
+# Prevent overlapping runs (launchd may fire while an import is in progress).
+LOCK="$STATE_DIR/lock"
+if ! mkdir "$LOCK" 2>/dev/null; then
+    echo "Another push-screenshots run is in progress; skipping." >&2
+    exit 0
+fi
+trap 'rmdir "$LOCK" 2>/dev/null' EXIT
+
+# --- helpers ---
+
+hash_file() {
+    shasum -a 256 "$1" | awk '{print $1}'
+}
+
+trash_file() {
+    local f="$1" base name ext dest i
+    base=$(basename "$f")
+    if [[ "$base" == *.* ]]; then
+        name="${base%.*}"; ext=".${base##*.}"
+    else
+        name="$base"; ext=""
+    fi
+    dest="$HOME/.Trash/$base"
+    for ((i = 2; ; i++)); do
+        [[ -e "$dest" ]] || break
+        dest="$HOME/.Trash/${name} ${i}${ext}"
+    done
+    mv "$f" "$dest"
+}
+
+esc() {  # escape a path for embedding in AppleScript double-quoted strings
+    local s="$1"
+    s=${s//\\/\\\\}
+    s=${s//\"/\\\"}
+    printf '%s' "$s"
+}
+
+# Import a list of files in one Photos AppleScript call.
+# Echoes the number of media items actually imported.
+import_batch() {
+    local list="" n=$1; shift
+    local i f
+    for ((i = 0; i < n; i++)); do
+        f="$1"; shift
+        list+="POSIX file \"$(esc "$f")\""
+        ((i < n - 1)) && list+=", "
+    done
+    osascript -e "tell application \"Photos\"
+    launch
+    if not (exists album \"${ALBUM}\") then
+        make new album named \"${ALBUM}\"
+    end if
+    set importedItems to import {${list}} skip check duplicates yes into album \"${ALBUM}\"
+    return count of importedItems
+end tell" 2>/dev/null || echo 0
+}
+
+# Record content hash in manifest, then move the local file to Trash.
+commit_file() {
+    local f="$1" sha
+    sha=$(hash_file "$f")
+    if ! trash_file "$f"; then
+        echo "warn: could not trash $f — imported, so it is safe to leave it in place" >&2
+    fi
+    printf '%s\t%s\t%s\n' "$sha" "$(date -Iseconds)" "$f" >>"$MANIFEST"
+}
+
+# --- collect files not yet imported ---
+
+shopt -s nullglob nocaseglob
+files=()
+for f in "$SRC"/*.{png,jpg,jpeg,heic,tif,tiff,gif,pdf,mov,mp4}; do
+    [[ -f "$f" ]] || continue
+    sha=$(hash_file "$f")
+    if awk -F'\t' -v s="$sha" '$1 == s { found = 1 } END { exit !found }' "$MANIFEST"; then
+        continue   # already imported in some prior run
+    fi
+    files+=("$f")
+    (( LIMIT > 0 && ${#files[@]} >= LIMIT )) && break
+done
+shopt -u nullglob nocaseglob
+
+total=${#files[@]}
+echo -n "Found $total file(s) to import into album '${ALBUM}'"
+if [[ $DRY_RUN -eq 1 ]]; then
+    echo " (dry run)"
+else
+    echo ""
+fi
+
+if [[ $total -eq 0 ]]; then
+    echo "Nothing to do — no unimported screenshots in $SRC."
+    exit 0
+fi
+
+if [[ $DRY_RUN -eq 1 ]]; then
+    for f in "${files[@]}"; do
+        printf '%8s  %s\n' "$(du -h "$f" | cut -f1)" "$(basename "$f")"
+    done
+    exit 0
+fi
+
+# --- import and clean up ---
+
+imported=0
+failed=()
+
+for ((start = 0; start < total; start += CHUNK)); do
+    want=$(( total - start ))
+    (( want > CHUNK )) && want=$CHUNK
+    got=$(import_batch "$want" "${files[@]:start:CHUNK}" | tail -n 1)
+    echo "Batch $((start / CHUNK + 1)): ${got} of ${want} imported"
+
+    if [[ "$got" -ne "$want" ]]; then
+        echo "Falling back to per-file import for this batch." >&2
+        got=0
+        for f in "${files[@]:start:CHUNK}"; do
+            one=$(osascript -e "tell application \"Photos\"
+                if not (exists album \"${ALBUM}\") then
+                    make new album named \"${ALBUM}\"
+                end if
+                set importedItems to import {POSIX file \"$(esc "$f")\"} skip check duplicates yes into album \"${ALBUM}\"
+                return count of importedItems
+            end tell" 2>/dev/null || echo 0)
+            if [[ "$one" -gt 0 ]]; then
+                commit_file "$f"
+                got=$((got + 1))
+            else
+                failed+=("$f")
+                echo "  FAILED: $(basename "$f")" >&2
+            fi
+        done
+        imported=$((imported + got))
+        continue
+    fi
+
+    for f in "${files[@]:start:CHUNK}"; do
+        commit_file "$f"
+    done
+    imported=$((imported + want))
+done
+
+osascript -e 'tell application "Photos" to quit' 2>/dev/null || true
+
+if [[ ${#failed[@]} -gt 0 ]]; then
+    echo "Done with ${#failed[@]} failure(s), left in place:" >&2
+    for f in "${failed[@]}"; do
+        echo "  $f" >&2
+    done
+    exit 1
+fi
+
+echo "Done — $imported file(s) imported into Photos and their local copies moved to Trash."
+echo "Check macOS Photos > album '${ALBUM}' to confirm, then empty the Trash when convenient."

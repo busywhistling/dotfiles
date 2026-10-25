@@ -18,7 +18,10 @@ README.md  # to keep it in repo without applying it
 .gnupg
 .homebrew
 .lima
-.local
+.local/*
+!.local/bin
+.local/bin/*
+!.local/bin/push-screenshots
 .nono
 .npm
 .pulumi
@@ -30,7 +33,10 @@ README.md  # to keep it in repo without applying it
 Desktop
 Documents
 Downloads
-Library
+Library/*
+!Library/LaunchAgents
+Library/LaunchAgents/*
+!Library/LaunchAgents/dev.paramjit.push-screenshots.plist
 Movies
 Music
 Pictures
