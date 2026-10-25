@@ -27,6 +27,7 @@ exclude = [
   "/Users/paramjit/.hushlogin",
   "/Users/paramjit/.local",
   "/Users/paramjit/.local/state",
+  "/Users/paramjit/Applications",
   "/Users/paramjit/.nono",
   "/Users/paramjit/.npm",
   "/Users/paramjit/.pulumi",
@@ -40,6 +41,7 @@ exclude = [
   "*.pyc",              # filename glob (matches anywhere)
   "*.o",
   "__pycache__",        # bare directory name
+  ".git",        # bare directory name
   "node_modules",
   # "build/output/*.tmp", # path pattern — auto-prefixed with **/, only matches under build/output
   # "**/cache.bin",       # explicit **/ — left as-is

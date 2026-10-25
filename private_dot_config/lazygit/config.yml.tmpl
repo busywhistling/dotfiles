@@ -1,0 +1,8 @@
+customCommands:
+  - key: "C"
+    context: "files"
+    description: "Generate commit message with Claude Code"
+    loadingText: 'Generating commit message…'
+    # command: "git diff --staged | claude -p 'Generate a concise git commit message... Output ONLY the raw commit message...' --model haiku --output-format text > /tmp/commit_msg && GIT_EDITOR=nvim git commit -e -F /tmp/commit_msg"
+    command: "git diff --staged | claude -p 'Generate a concise git commit message... Output ONLY the raw commit message...' --model haiku --output-format text | git commit -F -"
+    output: log
