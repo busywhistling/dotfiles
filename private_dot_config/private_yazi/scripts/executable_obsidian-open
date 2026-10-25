@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""Open files in the Obsidian app via its URL scheme.
+
+Obsidian compares vault paths case-sensitively, but macOS filesystems are
+usually case-insensitive, so an absolute `obsidian://open?path=...` URL can
+fail with "Vault not found" (e.g. `1_Notes` on disk vs `1_notes` in Obsidian's
+registry). Instead we look up the registered vault that contains the file and
+send `vault` + vault-relative `file`, falling back to `path` if no vault
+matches.
+
+Usage: obsidian-open /absolute/path/to/file.canvas [...]
+"""
+
+import json
+import os
+import subprocess
+import sys
+import urllib.parse
+
+REGISTRY = os.path.expanduser("~/Library/Application Support/obsidian/obsidian.json")
+
+
+def registered_vaults():
+    try:
+        with open(REGISTRY, encoding="utf-8") as f:
+            vaults = json.load(f).get("vaults", {})
+    except (OSError, ValueError):
+        return []
+
+    paths = []
+    for vault in vaults.values():
+        path = vault.get("path")
+        if path:
+            paths.append(os.path.normpath(path))
+    return paths
+
+
+def relative_to(target, vault):
+    """Path of `target` relative to `vault`, comparing components case-insensitively.
+
+    Returns None when `target` is not inside `vault`. `os.path.relpath` can't be
+    used here because it compares path components case-sensitively, which fails
+    on case-insensitive filesystems with differently-cased paths.
+    """
+    target_parts = target.split(os.sep)
+    vault_parts = vault.split(os.sep)
+
+    if len(target_parts) <= len(vault_parts):
+        return None
+
+    prefix = target_parts[: len(vault_parts)]
+    if [part.casefold() for part in prefix] != [part.casefold() for part in vault_parts]:
+        return None
+
+    return os.sep.join(target_parts[len(vault_parts) :])
+
+
+def url_for(target):
+    target = os.path.normpath(os.path.abspath(os.path.expanduser(target)))
+
+    # Longest matching vault wins, in case vaults are nested.
+    match = None
+    rel = None
+    for path in registered_vaults():
+        candidate = relative_to(target, path)
+        if candidate and (match is None or len(path) > len(match)):
+            match, rel = path, candidate
+
+    if match:
+        # Use quote(), not urlencode(): Obsidian expects %20 for spaces, and
+        # doesn't treat "+" as a space in these query values.
+        vault = urllib.parse.quote(os.path.basename(match))
+        file = urllib.parse.quote(rel)
+        return f"obsidian://open?vault={vault}&file={file}"
+
+    # Not inside a registered vault; fall back to the absolute path.
+    return f"obsidian://open?path={urllib.parse.quote(target)}"
+
+
+def main():
+    targets = sys.argv[1:]
+    if not targets:
+        sys.exit("usage: obsidian-open PATH [...]")
+
+    for target in targets:
+        subprocess.run(["open", url_for(target)], check=True)
+
+
+if __name__ == "__main__":
+    main()

@@ -51,10 +51,21 @@ exclude = [
   # "**/cache.bin",       # explicit **/ — left as-is
 ]
 
-# [opener]
-# play = [
-#   { run = 'iina "$@"', orphan = true, for = "unix" },
-# ]
+[opener]
+# Open Obsidian Canvas boards (.canvas) in the Obsidian app.
+# The helper looks up the registered vault containing the file (Obsidian
+# compares vault paths case-sensitively, macOS does not) and calls
+# `obsidian://open?vault=<name>&file=<relative path>`.
+obsidian = [
+  { run = '$HOME/.config/yazi/scripts/obsidian-open %s', desc = "Obsidian", for = "macos" },
+]
+
+[open]
+prepend_rules = [
+  # Canvas files are JSON under the hood, so match by extension to keep them
+  # away from the default `application/json` -> `edit` rule.
+  { url = "*.canvas", use = "obsidian" },
+]
 
 [plugin]
   prepend_preloaders = [

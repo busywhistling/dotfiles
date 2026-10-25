@@ -4,6 +4,7 @@ README.md  # to keep it in repo without applying it
 
 **/.git
 **/.DS_Store
+**/__pycache__
 
 .agent-browser
 .android
