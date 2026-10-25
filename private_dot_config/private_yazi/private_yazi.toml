@@ -8,6 +8,7 @@ exclude = [
   "Thumbs.db",          # exact filename
   "/Users/paramjit/.Trash",
   "/Users/paramjit/.agent-browser",
+  "/Users/paramjit/.obsidian-cli.sock",
   "/Users/paramjit/.android",
   "/Users/paramjit/.aws",
   "/Users/paramjit/.bun",
