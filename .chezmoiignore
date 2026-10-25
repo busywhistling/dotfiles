@@ -16,6 +16,7 @@ README.md  # to keep it in repo without applying it
 .claude.json
 .claude.json.backup
 .cups
+.obsidian-cli.sock
 .gnupg
 .homebrew
 .lima
