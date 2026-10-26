@@ -62,14 +62,6 @@ function maintain
       mark_run $timestamp_dir sync_repos
     end
 
-    # ssh dietpi "sudo apt update; sudo apt upgrade --yes"
-    if should_run $timestamp_dir hetzner_maintain 21600 "6 hours"
-      printf "\n#################################################################\n"
-      echo "Maintaining hetzner"
-      ssh hetzner maintain
-      mark_run $timestamp_dir hetzner_maintain
-    end
-
     if should_run $timestamp_dir mole 2629800 "1 month"
       printf "\n#################################################################\n"
       echo "Deep cleaning system"
@@ -98,6 +90,16 @@ function maintain
     printf "\nBacking up brew bundle to ~/.config/Brewfile-$hostname\n"
     brewdump
     mark_run $timestamp_dir brew
+  end
+
+  if test (hostname) = macbook
+    # ssh dietpi "sudo apt update; sudo apt upgrade --yes"
+    if should_run $timestamp_dir hetzner_maintain 21600 "6 hours"
+      printf "\n#################################################################\n"
+      echo "Maintaining hetzner"
+      ssh hetzner maintain
+      mark_run $timestamp_dir hetzner_maintain
+    end
   end
 
   # if should_run $timestamp_dir icloud_sync 21600 "6 hours"
