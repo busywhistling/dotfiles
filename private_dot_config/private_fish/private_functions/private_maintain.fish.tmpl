@@ -85,7 +85,7 @@ function maintain
   if test (hostname) = hetzner
     if should_run $timestamp_dir podman_maintain 21600 "6 hours"
       podman auto-update
-      podman system prune --all --volumes
+      podman system prune --all --volumes --force
       mark_run $timestamp_dir podman_maintain
     end
   end
