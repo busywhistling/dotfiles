@@ -1,0 +1,111 @@
+{
+  "title": "BPR1S Remote (BOXPUT / SIMONTEK)",
+  "rules": [
+    {
+      "description": "BPR1S: dead buttons -> F13-F19 (scoped to this remote only)",
+      "manipulators": [
+        {
+          "type": "basic",
+          "description": "AC Back -> F13",
+          "from": { "consumer_key_code": "ac_back", "modifiers": { "optional": ["any"] } },
+          "to": [{ "key_code": "f13" }],
+          "conditions": [
+            {
+              "type": "device_if",
+              "identifiers": [{ "vendor_id": 7514, "product_id": 49281, "description": "BOXPUT BPR1S" }]
+            }
+          ]
+        },
+        {
+          "type": "basic",
+          "description": "AC Home -> F14",
+          "from": { "consumer_key_code": "ac_home", "modifiers": { "optional": ["any"] } },
+          "to": [{ "key_code": "f14" }],
+          "conditions": [
+            {
+              "type": "device_if",
+              "identifiers": [{ "vendor_id": 7514, "product_id": 49281, "description": "BOXPUT BPR1S" }]
+            }
+          ]
+        },
+        {
+          "type": "basic",
+          "description": "AC Search -> F15",
+          "from": { "consumer_key_code": "ac_search", "modifiers": { "optional": ["any"] } },
+          "to": [{ "key_code": "f15" }],
+          "conditions": [
+            {
+              "type": "device_if",
+              "identifiers": [{ "vendor_id": 7514, "product_id": 49281, "description": "BOXPUT BPR1S" }]
+            }
+          ]
+        },
+        {
+          "type": "basic",
+          "description": "Menu Pick -> F16",
+          "from": { "consumer_key_code": "menu_pick", "modifiers": { "optional": ["any"] } },
+          "to": [{ "key_code": "f16" }],
+          "conditions": [
+            {
+              "type": "device_if",
+              "identifiers": [{ "vendor_id": 7514, "product_id": 49281, "description": "BOXPUT BPR1S" }]
+            }
+          ]
+        },
+        {
+          "type": "basic",
+          "description": "Power -> F17",
+          "from": { "consumer_key_code": "power", "modifiers": { "optional": ["any"] } },
+          "to": [{ "key_code": "f17" }],
+          "conditions": [
+            {
+              "type": "device_if",
+              "identifiers": [{ "vendor_id": 7514, "product_id": 49281, "description": "BOXPUT BPR1S" }]
+            }
+          ]
+        },
+        {
+          "type": "basic",
+          "description": "Application key -> F18",
+          "from": { "key_code": "application", "modifiers": { "optional": ["any"] } },
+          "to": [{ "key_code": "f18" }],
+          "conditions": [
+            {
+              "type": "device_if",
+              "identifiers": [{ "vendor_id": 7514, "product_id": 49281, "description": "BOXPUT BPR1S" }]
+            }
+          ]
+        },
+        {
+          "type": "basic",
+          "description": "Delete/Backspace -> F19",
+          "from": { "key_code": "delete_or_backspace", "modifiers": { "optional": ["any"] } },
+          "to": [{ "key_code": "f19" }],
+          "conditions": [
+            {
+              "type": "device_if",
+              "identifiers": [{ "vendor_id": 7514, "product_id": 49281, "description": "BOXPUT BPR1S" }]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "BPR1S: pointer button -> F20 (CHECK THE BUTTON NUMBER FIRST - see README)",
+      "manipulators": [
+        {
+          "type": "basic",
+          "description": "Pointer button -> F20",
+          "from": { "pointing_button": "button2", "modifiers": { "optional": ["any"] } },
+          "to": [{ "key_code": "f20" }],
+          "conditions": [
+            {
+              "type": "device_if",
+              "identifiers": [{ "vendor_id": 7514, "product_id": 49281, "description": "BOXPUT BPR1S" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
