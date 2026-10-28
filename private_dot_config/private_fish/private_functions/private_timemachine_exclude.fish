@@ -31,6 +31,7 @@ function timemachine_exclude
   sudo tmutil addexclusion -p /Users/paramjit/Music
   sudo tmutil addexclusion -p /Users/paramjit/Library/Containers/com.utmapp.UTM/
   sudo tmutil addexclusion -p /Users/paramjit/Library/Containers/com.utmapp.QEMUHelper/
+  sudo tmutil addexclusion -p /Users/paramjit/Documents/Zwift/
 
   sudo tmutil addexclusion -p /Users/paramjit/.lima/_disks
   sudo tmutil addexclusion -p /Users/paramjit/.android
