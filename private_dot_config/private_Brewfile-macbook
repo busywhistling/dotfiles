@@ -153,3 +153,4 @@ cask "voiceink"  # Voice to text app
 cask "whatsapp"  # Native desktop client for WhatsApp
 cask "wispr-flow"  # Voice-to-text dictation with AI-powered auto-editing
 cask "zoom"  # Video communication and virtual meeting platform
+cask "zwift"  # Indoor cycling game
