@@ -1,0 +1,53 @@
+{
+	"extends": "nolabs-ai/opencode",
+	"meta": {
+		"name": "paramjit"
+	},
+	"filesystem": {
+		"allow": ["~/Documents/2_dev", "~/.npm", "~/.agent-browser"],
+		"read": [
+			"~/.local/state/fnm_multishells",
+			"~/Library/Application Support/fnm/"
+		],
+		"read_file": ["~/.npmrc"]
+	},
+	"environment": {
+		"set_vars": {
+			"OPENCODE_CONFIG_DIR": "/Users/paramjit/Documents/2_dev/.opencode"
+		}
+	},
+	"network": {
+		"allow_domain": [
+			"models.dev",
+			"api.example.com",
+			"registry.npmjs.org",
+			"github.com",
+			"api.github.com",
+			"{{ .external.aiProxyUrl }}"
+		],
+		"credentials": ["provider", "docs", "proxy"],
+		"custom_credentials": {
+			"provider": {
+				"upstream": "https://api.example.com",
+				"credential_key": "op://Private/{{ .op.items.aiPrimary }}/Anmeldedaten",
+				"inject_header": "Authorization",
+				"credential_format": "Bearer {}",
+				"env_var": "AI_PRIMARY_API_KEY"
+			},
+			"docs": {
+				"upstream": "https://mcp.example.com",
+				"credential_key": "op://Personal/{{ .op.items.docsSearch }}/Anmeldedaten",
+				"inject_header": "Authorization",
+				"credential_format": "Bearer {}",
+				"env_var": "DOCS_API_KEY"
+			},
+			"proxy": {
+				"upstream": "https://{{ .external.aiProxyUrl }}",
+				"credential_key": "op://Private/{{ .op.items.aiProxy }}/Anmeldedaten",
+				"inject_header": "Authorization",
+				"credential_format": "Bearer {}",
+				"env_var": "AI_PROXY_TOKEN"
+			}
+		}
+	}
+}
