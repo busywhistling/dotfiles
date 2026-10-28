@@ -1,53 +1,93 @@
 {
-	"extends": "nolabs-ai/opencode",
-	"meta": {
-		"name": "paramjit"
-	},
-	"filesystem": {
-		"allow": ["~/Documents/2_dev", "~/.npm", "~/.agent-browser"],
-		"read": [
-			"~/.local/state/fnm_multishells",
-			"~/Library/Application Support/fnm/"
-		],
-		"read_file": ["~/.npmrc"]
-	},
-	"environment": {
-		"set_vars": {
-			"OPENCODE_CONFIG_DIR": "/Users/paramjit/Documents/2_dev/.opencode"
-		}
-	},
-	"network": {
-		"allow_domain": [
-			"models.dev",
-			"api.example.com",
-			"registry.npmjs.org",
-			"github.com",
-			"api.github.com",
-			"{{ .external.aiProxyUrl }}"
-		],
-		"credentials": ["provider", "docs", "proxy"],
-		"custom_credentials": {
-			"provider": {
-				"upstream": "https://api.example.com",
-				"credential_key": "op://Private/{{ .op.items.aiPrimary }}/Anmeldedaten",
-				"inject_header": "Authorization",
-				"credential_format": "Bearer {}",
-				"env_var": "AI_PRIMARY_API_KEY"
-			},
-			"docs": {
-				"upstream": "https://mcp.example.com",
-				"credential_key": "op://Personal/{{ .op.items.docsSearch }}/Anmeldedaten",
-				"inject_header": "Authorization",
-				"credential_format": "Bearer {}",
-				"env_var": "DOCS_API_KEY"
-			},
-			"proxy": {
-				"upstream": "https://{{ .external.aiProxyUrl }}",
-				"credential_key": "op://Private/{{ .op.items.aiProxy }}/Anmeldedaten",
-				"inject_header": "Authorization",
-				"credential_format": "Bearer {}",
-				"env_var": "AI_PROXY_TOKEN"
-			}
-		}
-	}
+  "extends": [
+    "nolabs-ai/opencode"
+  ],
+  "meta": {
+    "name": "test",
+    "version": "1.0.0",
+    "description": "Runtime-discovered path additions for opencode",
+    "author": null
+  },
+  "security": {
+    "signal_mode": null,
+    "process_info_mode": null,
+    "ipc_mode": null,
+    "capability_elevation": null,
+    "approval_backends": {},
+    "approval_defaults": null,
+    "wsl2_proxy_policy": null
+  },
+  "groups": {
+    "include": [],
+    "exclude": []
+  },
+  "commands": {
+    "allow": [],
+    "deny": []
+  },
+  "filesystem": {
+    "allow": [],
+    "read": [
+      "~/.config",
+      "~/.config/nono",
+      "~/Documents"
+    ],
+    "write": [],
+    "allow_file": [],
+    "read_file": [],
+    "write_file": [],
+    "unix_socket": [],
+    "unix_socket_bind": [],
+    "unix_socket_dir": [],
+    "unix_socket_dir_bind": [],
+    "unix_socket_subtree": [],
+    "unix_socket_subtree_bind": [],
+    "deny": [],
+    "bypass_protection": [],
+    "suppress_save_prompt": []
+  },
+  "network": {
+    "block": false,
+    "allow_http2": false,
+    "allow_domain": [],
+    "deny_domain": [],
+    "open_port": [],
+    "open_port_range": [],
+    "listen_port": [],
+    "listen_port_range": [],
+    "connect_port": [],
+    "no_proxy": [],
+    "custom_credentials": {},
+    "tls_intercept": null,
+    "upstream_proxy": null,
+    "upstream_bypass": []
+  },
+  "diagnostics": {
+    "suppress_system_services": [],
+    "redaction": {
+      "extra_env_vars": []
+    },
+    "network_denial_audit": {}
+  },
+  "linux": {
+    "af_unix_mediation": null,
+    "sandbox_policy": null
+  },
+  "env_credentials": {},
+  "credential_capture": {},
+  "credential_providers": {},
+  "credential_routes": [],
+  "workdir": {
+    "access": "none"
+  },
+  "hooks": {},
+  "session_hooks": {},
+  "rollback": {
+    "exclude_patterns": [],
+    "exclude_globs": []
+  },
+  "skipdirs": [],
+  "packs": [],
+  "command_args": [],
+  "unsafe_macos_seatbelt_rules": []
 }
