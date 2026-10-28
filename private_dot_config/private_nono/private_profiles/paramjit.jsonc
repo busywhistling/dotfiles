@@ -26,7 +26,8 @@
 	"filesystem": {
 		"allow": [
 			// Brave's --user-data-dir; must be writable or Brave refuses to start.
-			"$HOME/.local/share/agent-browser-brave-profile"
+			"$HOME/.local/share/agent-browser-brave-profile",
+			"~/Library/Application Support/switchbot-meter"
 		],
 		"read": ["~/.config", "~/.config/nono", "~/Documents"],
 		"write": [],
