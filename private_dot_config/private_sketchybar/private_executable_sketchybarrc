@@ -31,7 +31,7 @@ sketchybar --add item clock left \
            --set battery update_freq=120 script="$PLUGIN_DIR/battery.sh" \
            --subscribe battery system_woke power_source_change \
            --add item cdp right \
-           --set cdp update_freq=5 script="$PLUGIN_DIR/cdp.sh" \
+           --set cdp update_freq=600 script="$PLUGIN_DIR/cdp.sh" \
            --set cdp label.color=0xffffff00 \
            --subscribe cdp system_woke
 
