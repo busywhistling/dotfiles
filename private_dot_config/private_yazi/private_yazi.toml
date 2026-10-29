@@ -17,6 +17,7 @@ exclude = [
   "/Users/paramjit/.claude",
   "/Users/paramjit/.opencode",
   "/Users/paramjit/Documents/Busycal_backups",
+  "/Users/paramjit/Documents/Zwift",
   "/Users/paramjit/.claude.json",
   "/Users/paramjit/.claude.json.backup",
   "/Users/paramjit/.config/1Password",
