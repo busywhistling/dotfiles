@@ -21,6 +21,7 @@ default=(
 )
 sketchybar --default "${default[@]}"
 
+# TODO: Replace update_freq with triggers
 sketchybar --add item clock left \
            --set clock update_freq=10 script="$PLUGIN_DIR/clock.sh" \
            --add item chezmoi left \
@@ -29,5 +30,9 @@ sketchybar --add item clock left \
            --add item battery right \
            --set battery update_freq=120 script="$PLUGIN_DIR/battery.sh" \
            --subscribe battery system_woke power_source_change \
+           --add item cdp right \
+           --set cdp update_freq=5 script="$PLUGIN_DIR/cdp.sh" \
+           --set cdp label.color=0xffffff00 \
+           --subscribe cdp system_woke
 
 sketchybar --update
