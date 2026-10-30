@@ -40,6 +40,7 @@ brew "gh"  # GitHub command-line tool
 brew "ghostscript"  # Interpreter for PostScript and PDF
 brew "git-delta"  # Syntax-highlighting pager for git and diff output
 brew "git-filter-repo"  # Quickly rewrite git repository history
+brew "git-xet"  # Git LFS plugin that uploads and downloads using the Xet protocol
 brew "git"  # Distributed revision control system
 brew "glow"  # Render markdown on the CLI
 brew "go"  # Open source programming language to build simple/reliable/efficient software
