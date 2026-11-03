@@ -89,6 +89,8 @@ function maintain
     end
     printf "\nBacking up brew bundle to ~/.config/Brewfile-$hostname\n"
     brewdump
+    brew autoremove
+    brew cleanup --prune=all
     mark_run $timestamp_dir brew
   end
 
