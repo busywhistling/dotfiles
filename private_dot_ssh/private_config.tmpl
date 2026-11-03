@@ -6,6 +6,10 @@ Host hetzner
   Port {{ .vps.port }}
   User paramjit
 
+Host dietpi
+  HostName {{ .lan.dietpi }}
+  User dietpi
+
 {{ if eq .chezmoi.hostname "macbook" -}}
 Host *
   IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
