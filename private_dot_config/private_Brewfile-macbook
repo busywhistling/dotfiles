@@ -2,6 +2,7 @@
 # Top-level (explicitly installed) packages only.
 # Taps
 tap "1password/tap"
+tap "abue-ammar/tinycast"
 tap "anomalyco/tap"
 tap "felixkratz/formulae"
 tap "oven-sh/bun"
@@ -115,6 +116,7 @@ brew "zoxide"  # Shell extension to navigate your filesystem faster
 # Casks
 cask "1password"  # Password manager that keeps all passwords secure behind one password
 cask "1password/tap/1password-cli"  # Command-line interface for 1Password
+cask "abue-ammar/tinycast/tinycast"  # Tiny, fully native launcher, hotkeys, and clipboard history
 cask "aldente"  # Menu bar tool to limit maximum charging percentage
 cask "android-commandlinetools"  # Command-line tools for building and debugging Android apps
 cask "android-file-transfer"  # Transfer files from and to an Android smartphone
@@ -136,6 +138,7 @@ cask "font-sf-mono"  #
 cask "font-sf-pro"  # 
 cask "ghostty"  # Terminal emulator that uses platform-native UI and GPU acceleration
 cask "harper-desktop"  # Grammar checker for developers
+cask "hermes-desktop"  # Open-source desktop AI agent
 cask "iina"  # Free and open-source media player
 cask "karabiner-elements"  # Keyboard customiser
 cask "kitty"  # GPU-based terminal emulator
@@ -148,6 +151,7 @@ cask "podman-desktop"  # Browse, manage, inspect containers and images
 cask "popclip"  # Used to access context-specific actions when text is selected
 cask "sf-symbols"  # Tool that provides consistent, highly configurable symbols for apps
 cask "slack"  # Team communication and collaboration software
+cask "telegram-desktop"  # Desktop client for Telegram messenger
 cask "utm"  # Virtual machines UI using QEMU
 cask "voiceink"  # Voice to text app
 cask "whatsapp"  # Native desktop client for WhatsApp
