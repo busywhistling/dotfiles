@@ -7,6 +7,9 @@
     - usage convenience and comfort over config simplicity
 ]]
 
+-- Byte-compile Lua modules. Off by default in 0.12; call before anything is required.
+vim.loader.enable()
+
 -- Set to false if you don't use a Nerd Font.
 vim.g.have_nerd_font = true
 
@@ -20,7 +23,7 @@ o.expandtab = true -- spaces instead of tabs
 o.autoread = true
 o.number = true
 o.relativenumber = true -- to help with jumping
-o.signcolumn = "auto"
+o.signcolumn = "yes" -- never shift text when diagnostics appear
 o.inccommand = "split" -- preview substitutions live, as you type
 o.splitright = true
 o.splitbelow = true
@@ -36,24 +39,28 @@ o.laststatus = 3 -- have ONE statusline for all buffers per neovim instance
 o.cmdheight = 0 -- looks visually nice but requires extra enter for each command
 o.showmode = false -- has no effect due to cmdheight=0
 o.undofile = true
-o.ignorecase = false
+o.ignorecase = true -- `smartcase` only matters when this is on
 o.smartcase = true
 o.swapfile = false
+o.updatetime = 250 -- default is 4000ms; keeps CursorHold (LSP/gitsigns) fresh
 o.grepprg = "rg --vimgrep --smart-case --hidden"
 o.grepformat = "%f:%l:%c:%m"
 
-o.spell = true
+-- spell is enabled per filetype (see the autocmd at the bottom)
 o.spelllang = "en_gb"
 o.fillchars = { eob = " " }
 
 o.clipboard = "unnamedplus" -- sync clipboard between OS & nvim
 o.shell = vim.env.SHELL
+o.termguicolors = true
+o.winborder = "rounded" -- border for every floating window (hover, signature, ...)
 
 local g = vim.g
 g.mapleader = " "
 g.maplocalleader = " "
-
-vim.diagnostic.config({ virtual_text = true })
+-- disable netrw, nvim-tree takes over
+g.loaded_netrw = 1
+g.loaded_netrwPlugin = 1
 
 -- [[ Keymaps ]]
 
@@ -89,6 +96,29 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 
 -- to be able to use WisprFlow or similar dictation apps
 vim.keymap.set("i", "<F5>", "<Nop>", { noremap = true, silent = true })
+
+-- [[ Helpers ]]
+-- lazy.nvim used to `pcall` every plugin's config. A plain init.lua aborts on
+-- the first error, so report instead of throwing and keep loading the rest.
+local function try(fn, what)
+	local ok, err = pcall(fn)
+	if not ok then
+		vim.notify(("[init] %s: %s"):format(what or "error", err), vim.log.levels.ERROR)
+	end
+	return ok and err or nil
+end
+
+local function setup(module, opts)
+	local ok, mod = pcall(require, module)
+	if not ok then
+		vim.notify(("[init] require(%q): %s"):format(module, mod), vim.log.levels.ERROR)
+		return
+	end
+	local ok2, err = pcall(mod.setup, opts)
+	if not ok2 then
+		vim.notify(("[init] %s.setup(): %s"):format(module, err), vim.log.levels.ERROR)
+	end
+end
 
 -- [[ Plugins: vim.pack ]]
 --
@@ -174,40 +204,42 @@ local plugins = {
 vim.pack.add(plugins)
 
 -- [[ Colorscheme ]]
-require("kanagawa").setup({
-	colors = {
-		theme = { all = { ui = { bg_gutter = "none" } } },
-	},
-})
-vim.cmd.colorscheme("kanagawa-dragon")
+try(function()
+	require("kanagawa").setup({
+		colors = {
+			theme = { all = { ui = { bg_gutter = "none" } } },
+		},
+	})
+	vim.cmd.colorscheme("kanagawa-dragon")
+end, "colorscheme")
 
 -- [[ gitsigns ]]
-require("gitsigns").setup()
+setup("gitsigns")
 
 -- [[ autopairs ]] (deferred to keep startup lean)
 vim.api.nvim_create_autocmd("InsertEnter", {
 	once = true,
 	callback = function()
-		require("nvim-autopairs").setup({})
+		setup("nvim-autopairs", {})
 	end,
 })
 
 -- [[ auto-session ]]
-require("auto-session").setup({
+setup("auto-session", {
 	suppressed_dirs = { "~/", "~/Downloads", "/" },
 })
 
 -- [[ zen-mode ]]
-require("zen-mode").setup({})
+setup("zen-mode", {})
 
 -- [[ typst-preview ]]
-require("typst-preview").setup({})
+setup("typst-preview", {})
 
 -- [[ which-key ]]
 vim.api.nvim_create_autocmd("VimEnter", {
 	once = true,
 	callback = function()
-		require("which-key").setup({
+		setup("which-key", {
 			-- delay between pressing a key and opening which-key (milliseconds)
 			delay = 2000,
 			icons = {
@@ -258,13 +290,13 @@ vim.api.nvim_create_autocmd("VimEnter", {
 })
 
 -- [[ indent-blankline ]]
-require("ibl").setup({})
+setup("ibl", {})
 
 -- [[ telescope ]]
 vim.api.nvim_create_autocmd("VimEnter", {
 	once = true,
 	callback = function()
-		require("telescope").setup({
+		setup("telescope", {
 			extensions = {
 				["ui-select"] = {
 					require("telescope.themes").get_dropdown(),
@@ -319,7 +351,7 @@ vim.api.nvim_create_autocmd("FileType", {
 	pattern = "lua",
 	once = true,
 	callback = function()
-		require("lazydev").setup({
+		setup("lazydev", {
 			library = {
 				-- Load luvit types when the `vim.uv` word is found
 				{ path = "${3rd}/luv/library", words = { "vim%.uv" } },
@@ -331,10 +363,10 @@ vim.api.nvim_create_autocmd("FileType", {
 -- [[ LSP ]]
 
 -- Automatically install LSPs and related tools to stdpath for Neovim
-require("mason").setup({})
+setup("mason", {})
 
 -- `fidget` shows useful status updates for LSP.
-require("fidget").setup({})
+setup("fidget", {})
 
 -- This function gets run when an LSP attaches to a particular buffer.
 vim.api.nvim_create_autocmd("LspAttach", {
@@ -346,33 +378,21 @@ vim.api.nvim_create_autocmd("LspAttach", {
 			vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
 		end
 
-		-- Rename the variable under your cursor.
-		map("grn", vim.lsp.buf.rename, "[R]e[n]ame")
+		-- Built-in defaults already cover: grn (rename), gra (code action),
+		-- grr (references), gri (implementation), grt (type definition),
+		-- grx, gO (document symbol) and K (hover). Only add what differs.
 
-		-- Execute a code action, usually your cursor needs to be on top of an error
-		-- or a suggestion from your LSP for this to activate.
-		map("gra", vim.lsp.buf.code_action, "[G]oto Code [A]ction", { "n", "x" })
-
-		-- Find references for the word under your cursor.
-		map("grr", require("telescope.builtin").lsp_references, "[G]oto [R]eferences")
-
-		-- Jump to the implementation of the word under your cursor.
-		map("gri", require("telescope.builtin").lsp_implementations, "[G]oto [I]mplementation")
-
-		-- Jump to the definition of the word under your cursor.
+		-- Jump to the definition of the word under your cursor (Telescope).
 		map("grd", require("telescope.builtin").lsp_definitions, "[G]oto [D]efinition")
+
+		-- Deliberately override Vim's `gd` (local declaration) with the LSP.
+		map("gd", vim.lsp.buf.definition, "[G]oto [D]efinition (LSP)")
 
 		-- Goto declaration (e.g. the header in C).
 		map("grD", vim.lsp.buf.declaration, "[G]oto [D]eclaration")
 
-		-- Fuzzy find all the symbols in your current document.
-		map("gO", require("telescope.builtin").lsp_document_symbols, "Open Document Symbols")
-
 		-- Fuzzy find all the symbols in your current workspace.
 		map("gW", require("telescope.builtin").lsp_dynamic_workspace_symbols, "Open Workspace Symbols")
-
-		-- Jump to the type of the word under your cursor.
-		map("grt", require("telescope.builtin").lsp_type_definitions, "[G]oto [T]ype Definition")
 
 		-- Highlight references of the word under your cursor when it rests there.
 		local client = vim.lsp.get_client_by_id(event.data.client_id)
@@ -423,23 +443,15 @@ vim.diagnostic.config({
 			[vim.diagnostic.severity.HINT] = "󰌶 ",
 		},
 	} or {},
-	virtual_text = {
-		source = "if_many",
-		spacing = 2,
-		format = function(diagnostic)
-			local diagnostic_message = {
-				[vim.diagnostic.severity.ERROR] = diagnostic.message,
-				[vim.diagnostic.severity.WARN] = diagnostic.message,
-				[vim.diagnostic.severity.INFO] = diagnostic.message,
-				[vim.diagnostic.severity.HINT] = diagnostic.message,
-			}
-			return diagnostic_message[diagnostic.severity]
-		end,
-	},
+	-- Only show diagnostics for the cursor line, on their own line.
+	-- (Use `virtual_text = { ... }` instead if you prefer inline messages.)
+	virtual_lines = { current_line = true },
 })
 
 -- Extra capabilities provided by blink.cmp, broadcast to all servers.
-local capabilities = require("blink.cmp").get_lsp_capabilities()
+local capabilities = try(function()
+	return require("blink.cmp").get_lsp_capabilities()
+end) or {}
 vim.lsp.config("*", { capabilities = capabilities })
 
 -- Enable the following language servers. They are installed by Mason.
@@ -474,31 +486,35 @@ for name, server in pairs(servers) do
 	vim.lsp.config(name, server)
 end
 
+-- Enable explicitly. `mason-lspconfig`'s automatic_enable only sees servers
+-- Mason installed, so a compiler-provided server (e.g. rustup's
+-- rust-analyzer) would otherwise never start.
+vim.lsp.enable({ "clangd", "harper_ls", "lua_ls", "rust_analyzer" })
+
 -- Ensure the servers and tools above are installed.
 -- To check the current status of installed tools and/or manually install
 -- other tools, run `:Mason`.
 local ensure_installed = vim.tbl_keys(servers or {})
 vim.list_extend(ensure_installed, {
 	"stylua", -- Used to format Lua code
+	"ruff", -- python formatter/linter (conform)
+	"biome", -- js/ts/json/css formatter (conform)
+	"clang-format", -- c/cpp formatter (conform)
 })
-require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
+setup("mason-tool-installer", { ensure_installed = ensure_installed })
 
--- `mason-lspconfig` enables every server installed by Mason (`vim.lsp.enable`).
-require("mason-lspconfig").setup({
+setup("mason-lspconfig", {
 	ensure_installed = {}, -- installs are handled by mason-tool-installer
-	automatic_enable = true,
+	automatic_enable = false, -- handled by the explicit `vim.lsp.enable()` above
 })
-
--- Cpp config
-vim.lsp.enable("clangd")
 
 -- [[ conform: autoformat ]]
-require("conform").setup({
+setup("conform", {
 	notify_on_error = false,
 	format_on_save = function(bufnr)
-		-- Disable "format_on_save lsp_fallback" for languages that don't
-		-- have a well standardized coding style.
-		local disable_filetypes = { lang = true }
+		-- Opt out of format-on-save per filetype by adding e.g. `cpp = true`.
+		-- (The old table had a `lang` key, which is not a real filetype.)
+		local disable_filetypes = {}
 		if disable_filetypes[vim.bo[bufnr].filetype] then
 			return nil
 		else
@@ -533,7 +549,7 @@ require("conform").setup({
 	},
 })
 
-vim.keymap.set("", "<leader>f", function()
+vim.keymap.set({ "n", "v" }, "<leader>f", function()
 	require("conform").format({ async = true, lsp_format = "fallback" })
 end, { desc = "[F]ormat buffer" })
 
@@ -541,7 +557,7 @@ end, { desc = "[F]ormat buffer" })
 vim.api.nvim_create_autocmd("VimEnter", {
 	once = true,
 	callback = function()
-		require("blink.cmp").setup({
+		setup("blink.cmp", {
 			keymap = {
 				preset = "default",
 			},
@@ -573,92 +589,88 @@ vim.api.nvim_create_autocmd("VimEnter", {
 })
 
 -- [[ todo-comments ]]
-require("todo-comments").setup({ signs = false })
+setup("todo-comments", { signs = false })
 
 -- [[ mini.nvim ]]
-require("mini.ai").setup({ n_lines = 500 })
-require("mini.surround").setup()
+try(function()
+	require("mini.ai").setup({ n_lines = 500 })
+	require("mini.surround").setup()
 
-local devicons = require("nvim-web-devicons")
-devicons.setup()
+	local devicons = require("nvim-web-devicons")
+	devicons.setup()
 
-local statusline = require("mini.statusline")
-statusline.setup({
-	use_icons = vim.g.have_nerd_font,
+	local statusline = require("mini.statusline")
+	statusline.setup({
+		use_icons = vim.g.have_nerd_font,
 
-	content = {
-		active = function()
-			local mode, mode_hl = statusline.section_mode({ trunc_width = 1000 })
-			local git = statusline.section_git({ trunc_width = 40 })
-			local diff = statusline.section_diff({ trunc_width = 75 })
-			local diagnostics = statusline.section_diagnostics({ trunc_width = 75 })
-			local filename = function()
-				-- In terminal always use plain name
-				if vim.bo.buftype == "terminal" then
-					return "%t"
-				else
-					-- File name with 'truncate', 'modified', 'readonly' flags
-					-- Use relative path
-					return string.format(
-						"%s %s",
-						devicons.get_icon(vim.fn.expand("%:t"), nil, { default = true }),
-						"%f%m%r"
-					)
-				end
-			end
-			local fileinfo = function()
-				-- Construct output string with extra file info
-				local get_size = function()
-					local size = math.max(vim.fn.line2byte(vim.fn.line("$") + 1) - 1, 0)
-					if size < 1024 then
-						return string.format("%dB", size)
-					elseif size < 1048576 then
-						return string.format("%.2fKiB", size / 1024)
+		content = {
+			active = function()
+				local mode, mode_hl = statusline.section_mode({ trunc_width = 1000 })
+				local git = statusline.section_git({ trunc_width = 40 })
+				local diff = statusline.section_diff({ trunc_width = 75 })
+				local diagnostics = statusline.section_diagnostics({ trunc_width = 75 })
+				local filename = function()
+					-- In terminal always use plain name
+					if vim.bo.buftype == "terminal" then
+						return "%t"
 					else
-						return string.format("%.2fMiB", size / 1048576)
+						-- File name with 'truncate', 'modified', 'readonly' flags
+						-- Use relative path
+						return string.format(
+							"%s %s",
+							devicons.get_icon(vim.fn.expand("%:t"), nil, { default = true }),
+							"%f%m%r"
+						)
 					end
 				end
+				local fileinfo = function()
+					-- Construct output string with extra file info
+					local get_size = function()
+						local size = math.max(vim.fn.line2byte(vim.fn.line("$") + 1) - 1, 0)
+						if size < 1024 then
+							return string.format("%dB", size)
+						elseif size < 1048576 then
+							return string.format("%.2fKiB", size / 1024)
+						else
+							return string.format("%.2fMiB", size / 1048576)
+						end
+					end
 
-				return string.format("%s", get_size())
-			end
-			local location = "%L"
-			local search = statusline.section_searchcount({ trunc_width = 75 })
+					return string.format("%s", get_size())
+				end
+				local location = "%L"
+				local search = statusline.section_searchcount({ trunc_width = 75 })
 
-			return statusline.combine_groups({
-				{ hl = mode_hl, strings = { mode } },
-				{ hl = "MiniStatuslineDevinfo", strings = { git, diff, diagnostics } },
-				"%<", -- Mark general truncate point
-				{ hl = "MiniStatuslineFilename", strings = { filename() } },
-				"%=", -- End left alignment
-				{ hl = "MiniStatuslineFileinfo", strings = { fileinfo() } },
-				{ hl = mode_hl, strings = { search, location } },
-			})
-		end,
-	},
-})
+				return statusline.combine_groups({
+					{ hl = mode_hl, strings = { mode } },
+					{ hl = "MiniStatuslineDevinfo", strings = { git, diff, diagnostics } },
+					"%<", -- Mark general truncate point
+					{ hl = "MiniStatuslineFilename", strings = { filename() } },
+					"%=", -- End left alignment
+					{ hl = "MiniStatuslineFileinfo", strings = { fileinfo() } },
+					{ hl = mode_hl, strings = { search, location } },
+				})
+			end,
+		},
+	})
 
--- Sections can be overridden, e.g. cursor location as LINE:COLUMN
----@diagnostic disable-next-line: duplicate-set-field
-statusline.section_location = function()
-	return "%2l:%-2v"
-end
+	-- Sections can be overridden, e.g. cursor location as LINE:COLUMN
+	---@diagnostic disable-next-line: duplicate-set-field
+	statusline.section_location = function()
+		return "%2l:%-2v"
+	end
+end, "mini.nvim")
 
 -- [[ fold-imports ]]
 vim.api.nvim_create_autocmd("BufRead", {
 	once = true,
 	callback = function()
-		require("fold_imports").setup({})
+		setup("fold_imports", {})
 	end,
 })
 
 -- [[ nvim-tree ]]
--- disable netrw at the very start
-vim.g.loaded_netrw = 1
-vim.g.loaded_netrwPlugin = 1
--- optionally enable 24-bit colour
-vim.opt.termguicolors = true
-
-require("nvim-tree").setup({
+setup("nvim-tree", {
 	sort = {
 		sorter = "case_sensitive",
 	},
@@ -704,7 +716,7 @@ vim.api.nvim_create_autocmd("QuitPre", {
 })
 
 -- [[ trouble ]]
-require("trouble").setup({})
+setup("trouble", {})
 
 vim.keymap.set("n", "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", { desc = "Diagnostics (Trouble)" })
 vim.keymap.set(
@@ -724,30 +736,30 @@ vim.keymap.set("n", "<leader>xL", "<cmd>Trouble loclist toggle<cr>", { desc = "L
 vim.keymap.set("n", "<leader>xQ", "<cmd>Trouble qflist toggle<cr>", { desc = "Quickfix List (Trouble)" })
 
 -- [[ url-open ]]
-local status_ok, url_open = pcall(require, "url-open")
-if status_ok then
-	url_open.setup({})
-end
+setup("url-open", {})
 
 -- [[ treesitter ]]
 -- NOTE: nvim-treesitter's `main` branch is a rewrite: parsers are installed
 -- explicitly and highlighting/indent are enabled per filetype.
-require("nvim-treesitter").setup({})
-require("nvim-treesitter").install({
-	"bash",
-	"c",
-	"diff",
-	"html",
-	"lua",
-	"luadoc",
-	"typescript",
-	"markdown",
-	"markdown_inline",
-	"query",
-	"vim",
-	"vimdoc",
-	"swift",
-})
+try(function()
+	local ts = require("nvim-treesitter")
+	ts.setup({})
+	ts.install({
+		"bash",
+		"c",
+		"diff",
+		"html",
+		"lua",
+		"luadoc",
+		"typescript",
+		"markdown",
+		"markdown_inline",
+		"query",
+		"vim",
+		"vimdoc",
+		"swift",
+	})
+end, "treesitter")
 
 vim.api.nvim_create_autocmd("FileType", {
 	callback = function(event)
@@ -762,7 +774,7 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- [[ treesitter-context ]]
-require("treesitter-context").setup({})
+setup("treesitter-context", {})
 
 -- [[ tinymist (typst) ]]
 vim.lsp.config("tinymist", {
@@ -775,11 +787,23 @@ vim.lsp.config("tinymist", {
 })
 vim.lsp.enable("tinymist")
 
-vim.api.nvim_create_autocmd("LspAttach", {
-	desc = "LSP Actions",
+-- [[ Quality of life ]]
+
+-- Spell only where prose is expected (the old config enabled it globally).
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = { "gitcommit", "markdown", "text", "typst" },
 	callback = function()
-		vim.keymap.set("n", "K", vim.lsp.buf.hover, { noremap = true, silent = true })
-		vim.keymap.set("n", "gd", vim.lsp.buf.definition, { noremap = true, silent = true })
+		vim.opt_local.spell = true
+	end,
+})
+
+-- Restore the cursor to where it was when the file was last open.
+vim.api.nvim_create_autocmd("BufReadPost", {
+	callback = function(event)
+		local mark = vim.api.nvim_buf_get_mark(event.buf, '"')
+		if mark[1] > 0 and mark[1] <= vim.api.nvim_buf_line_count(event.buf) then
+			pcall(vim.api.nvim_win_set_cursor, 0, mark)
+		end
 	end,
 })
 
