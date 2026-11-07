@@ -77,7 +77,18 @@ function maintain
   if test (hostname) = hetzner
     if should_run $timestamp_dir podman_maintain 21600 "6 hours"
       podman auto-update
+      # Leftover buildah build containers and storage-only containers pin base
+      # images and layers, so `image prune` cannot free them.
+      podman system prune --build -f
+      podman system prune --external -f
       podman system prune --all --volumes # --force
+      # Orphaned layers are invisible to `system df` and `image prune`.
+      # Report only: `check --repair` would delete in-use images (the
+      # opentodo /etc mtime warnings are benign).
+      set -l orphaned_layers (podman system check 2>&1 | grep -c "not referenced by any images or containers")
+      if test $orphaned_layers -gt 0
+        printf "warning: %s orphaned podman layers — inspect with podman system check\n" $orphaned_layers
+      end
       mark_run $timestamp_dir podman_maintain
     end
   end
