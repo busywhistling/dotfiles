@@ -38,9 +38,6 @@ Desktop
 Documents
 Downloads
 Library/*
-!Library/LaunchAgents
-Library/LaunchAgents/*
-!Library/LaunchAgents/dev.paramjit.push-screenshots.plist
 Movies
 Music
 Pictures
@@ -67,4 +64,7 @@ Pictures
 .config/sketchybar
 .config/mbsyncrc
 .config/Brewfile-macbook
+!Library/LaunchAgents
+Library/LaunchAgents/*
+!Library/LaunchAgents/dev.paramjit.push-screenshots.plist
 {{ end }}
