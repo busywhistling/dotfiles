@@ -58,6 +58,8 @@ Pictures
 .config/opencode/opencode-notifier-state.json
 .config/opencode/service.json
 
+.config/hometube
+
 {{ if ne .chezmoi.hostname "macbook" }}
 .config/karabiner
 .config/op
