@@ -49,3 +49,6 @@ set -gx AWS_CONFIG_FILE ~/.config/aws/config
 # AWS_SHARED_CREDENTIALS_FILE
 
 set -gx NPM_CONFIG_USERCONFIG ~/.config/npmrc
+
+# Hermes Agent command
+fish_add_path "$HOME/.local/bin"
