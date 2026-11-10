@@ -121,7 +121,6 @@ cask "android-file-transfer"  # Transfer files from and to an Android smartphone
 cask "android-platform-tools"  # Android SDK component
 cask "android-studio"  # Tools for building Android applications
 cask "androidtool"  # App for recording the screen and installing apps in iOS and Android
-cask "anki"  # Memory training application
 cask "balenaetcher"  # Tool to flash OS images to SD cards & USB drives
 cask "beeper"  # Universal chat app powered by Matrix
 cask "blender"  # 3D creation suite
