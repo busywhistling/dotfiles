@@ -22,6 +22,9 @@ function timemachine_exclude
   fd "^\.cargo\$" ~/Documents \
     --unrestricted --type d --prune -E 4_gitclones -E node_modules \
     -x sudo tmutil addexclusion -p {} 
+  fd "^target\$" ~/Documents \
+    --unrestricted --type d --prune -E 4_gitclones -E node_modules \
+    -x sudo tmutil addexclusion -p {} 
 
   sudo tmutil addexclusion -p /Users/paramjit/Documents/4_gitclones
   sudo tmutil addexclusion -p /Users/paramjit/.local/share
