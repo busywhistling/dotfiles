@@ -16,5 +16,5 @@ function sync_repos
 
   cd $path
 
-  ls ~/Documents/4_gitclones/ > ~/Documents/1_notes/gitclones.typ
+  ls ~/Documents/4_gitclones/ > ~/Documents/5_notes/gitclones.typ
 end
