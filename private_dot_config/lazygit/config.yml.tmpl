@@ -1,8 +1,9 @@
 customCommands:
   - key: "C"
     context: "files"
-    description: "Generate commit message with Claude Code"
+    description: "Generate commit message with opencode (DeepSeek)"
     loadingText: 'Generating commit message…'
-    # command: "git diff --staged | claude -p 'Generate a concise git commit message... Output ONLY the raw commit message...' --model haiku --output-format text > /tmp/commit_msg && GIT_EDITOR=nvim git commit -e -F /tmp/commit_msg"
-    command: "git diff --staged | claude -p 'Generate a concise git commit message... Output ONLY the raw commit message...' --model haiku --output-format text | git commit -F -"
+    # previous: Claude Code (kept for easy revert)
+    # command: "git diff --staged | claude -p 'Generate a concise git commit message... Output ONLY the raw commit message...' --model haiku --output-format text | git commit -F -"
+    command: "git diff --staged | opencode run --archived -m '{{ .ai.commitModel }}' 'Generate a concise git commit message for the staged diff provided on stdin. Output ONLY the raw commit message on a single line, no quotes, no markdown, no explanation.' | git commit -F -"
     output: log
