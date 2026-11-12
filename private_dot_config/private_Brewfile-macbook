@@ -24,6 +24,7 @@ brew "clang-format"  # Formatting tools for C, C++, Obj-C, Java, JavaScript, Typ
 brew "cloc"  # Statistics utility to count lines of code
 brew "cmake"  # Cross-platform make
 brew "coreutils"  # GNU File, Shell, and Text utilities
+brew "curl"  # Get a file from an HTTP, HTTPS or FTP server
 brew "dua-cli"  # View disk space usage and delete unwanted data, fast
 brew "duf"  # Disk Usage/Free Utility - a better 'df' alternative
 brew "eza"  # Modern, maintained replacement for ls
@@ -88,6 +89,7 @@ brew "qemu"  # Generic machine emulator and virtualizer
 brew "restic"  # Fast, efficient and secure backup program
 brew "rsync"  # Utility that provides fast incremental file transfer
 brew "ruff"  # Extremely fast Python linter, written in Rust
+brew "rumdl"  # Markdown Linter and Formatter written in Rust
 brew "rust"  # Safe, concurrent, practical language
 brew "rustup"  # Rust toolchain installer
 brew "scrcpy"  # Display and control your Android device
@@ -126,8 +128,8 @@ cask "beeper"  # Universal chat app powered by Matrix
 cask "blender"  # 3D creation suite
 cask "brave-origin"  # Privacy-focused web browser
 cask "busycal"  # Calendar software focusing on flexibility and reliability
-cask "claude-code"  # Terminal-based AI coding assistant
 cask "discord"  # Voice and text chat software
+cask "fluidvoice"  # Offline voice-to-text dictation app with AI enhancement
 cask "font-fira-code"  # 
 cask "font-hack-nerd-font"  # 
 cask "font-iosevka"  # 
@@ -143,6 +145,7 @@ cask "llama-app"  # Menu bar app for running local LLMs
 cask "microsoft-teams"  # Meet, chat, call, and collaborate in just one place
 cask "monitorcontrol"  # Tool to control external monitor brightness & volume
 cask "obsidian"  # Knowledge base that works on top of a local folder of plain text Markdown files
+cask "opencode-desktop"  # AI coding agent desktop client
 cask "openvpn-connect"  # Client program for the OpenVPN Access Server
 cask "podman-desktop"  # Browse, manage, inspect containers and images
 cask "popclip"  # Used to access context-specific actions when text is selected
