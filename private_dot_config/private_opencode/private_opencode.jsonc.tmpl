@@ -5,5 +5,19 @@
   },
   "plugins": [
     "{{ .external.opencodePlugin }}"
-  ]
+  ],
+  "mcp": {
+    "servers": {
+      "browse": {
+        "type": "local",
+        "command": [
+          "/Users/paramjit/.local/bin/browse",
+          "mcp"
+        ],
+        "environment": {
+          "OPENCODE_BROWSER_RUNTIME": "auto-update"
+        }
+      }
+    }
+  }
 }

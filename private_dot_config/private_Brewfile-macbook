@@ -137,7 +137,6 @@ cask "font-sf-mono"  #
 cask "font-sf-pro"  # 
 cask "ghostty"  # Terminal emulator that uses platform-native UI and GPU acceleration
 cask "harper-desktop"  # Grammar checker for developers
-cask "hermes-desktop"  # Open-source desktop AI agent
 cask "iina"  # Free and open-source media player
 cask "karabiner-elements"  # Keyboard customiser
 cask "kitty"  # GPU-based terminal emulator

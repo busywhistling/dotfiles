@@ -1,0 +1,9 @@
+{
+  "opencode": "/opt/homebrew/bin/opencode",
+  "entry": "/Users/paramjit/.local/bin/browse",
+  "version": "0.0.16",
+  "agents": [],
+  "opencodeConfigs": [
+    "/Users/paramjit/.config/opencode/opencode.jsonc"
+  ]
+}

@@ -3,7 +3,6 @@ ratio = [0,1,3]
 show_hidden = true
 # custom config, only works for fork: https://github.com/spencer-michaels/yazi
 exclude = [
-  "/Users/paramjit/Downloads",  # auto: yazi-downloads-exclude
   ".DS_Store",          # exact filename
   "Thumbs.db",          # exact filename
   "/Users/paramjit/.Trash",
@@ -16,6 +15,7 @@ exclude = [
   "/Users/paramjit/.cargo",
   "/Users/paramjit/.notes",
   "/Users/paramjit/.gradle",
+  "/Users/paramjit/.CFUserTextEncoding",
   "/Users/paramjit/.emulator_console_auth_token",
   "/Users/paramjit/.claude",
   "/Users/paramjit/.opencode",

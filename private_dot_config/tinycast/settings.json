@@ -59,10 +59,20 @@
         "alias": null,
         "showInLauncher": false
       },
+      "com.automattic.beeper.desktop": {
+        "shortcut": null,
+        "alias": null,
+        "showInLauncher": false
+      },
       "com.mitchellh.ghostty": {
         "shortcut": "option+return",
         "alias": null,
         "showInLauncher": true
+      },
+      "net.whatsapp.WhatsApp": {
+        "shortcut": null,
+        "alias": null,
+        "showInLauncher": false
       }
     }
   },
