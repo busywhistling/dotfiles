@@ -8,7 +8,6 @@ tap "oven-sh/bun"
 tap "pulumi/tap"
 
 # Formulae (top-level only)
-brew "agent-browser"  # Browser automation CLI for AI agents
 brew "aria2"  # Download with resuming and segmented downloading
 brew "asciinema"  # Record and share terminal sessions
 brew "asimov"  # Automatically exclude development dependencies from Time Machine backups
@@ -123,6 +122,7 @@ cask "android-file-transfer"  # Transfer files from and to an Android smartphone
 cask "android-platform-tools"  # Android SDK component
 cask "android-studio"  # Tools for building Android applications
 cask "androidtool"  # App for recording the screen and installing apps in iOS and Android
+cask "anomalyco/tap/hex"  # Local voice dictation
 cask "balenaetcher"  # Tool to flash OS images to SD cards & USB drives
 cask "beeper"  # Universal chat app powered by Matrix
 cask "blender"  # 3D creation suite
@@ -150,6 +150,7 @@ cask "podman-desktop"  # Browse, manage, inspect containers and images
 cask "popclip"  # Used to access context-specific actions when text is selected
 cask "sf-symbols"  # Tool that provides consistent, highly configurable symbols for apps
 cask "slack"  # Team communication and collaboration software
+cask "tailscale-app"  # Mesh VPN based on WireGuard
 cask "telegram-desktop"  # Desktop client for Telegram messenger
 cask "tinycast"  # Application launcher and productivity tool
 cask "utm"  # Virtual machines UI using QEMU
