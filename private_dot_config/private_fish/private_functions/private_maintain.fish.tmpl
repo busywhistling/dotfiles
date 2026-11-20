@@ -117,7 +117,7 @@ function maintain
 
   if test (hostname) = hetzner
     if should_run $timestamp_dir hermes_update 21600 "6 hours"
-      hermes update
+      hermes update --yes
       mark_run $timestamp_dir hermes_update
     end
   end
