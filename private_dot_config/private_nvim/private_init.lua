@@ -395,20 +395,39 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		map("gW", require("telescope.builtin").lsp_dynamic_workspace_symbols, "Open Workspace Symbols")
 
 		-- Highlight references of the word under your cursor when it rests there.
+		-- Only register for servers that actually support documentHighlight:
+		-- harper_ls (markdown/typst) does not, and asking it to would notify
+		-- 'method "textDocument/documentHighlight" is not supported' on every CursorHold.
 		local client = vim.lsp.get_client_by_id(event.data.client_id)
 		if client then
 			local highlight_augroup = vim.api.nvim_create_augroup("kickstart-lsp-highlight", { clear = false })
-			vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
-				buffer = event.buf,
+			-- Guard against double registration when a second supporting server attaches.
+			local already_registered = #vim.api.nvim_get_autocmds({
 				group = highlight_augroup,
-				callback = vim.lsp.buf.document_highlight,
-			})
+				event = "CursorHold",
+				buffer = event.buf,
+			}) > 0
+			if client:supports_method("textDocument/documentHighlight", event.buf) and not already_registered then
+				vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+					buffer = event.buf,
+					group = highlight_augroup,
+					callback = function()
+						-- Re-check at fire time: the supporting server may have gone away.
+						if
+							#vim.lsp.get_clients({ bufnr = event.buf, method = "textDocument/documentHighlight" }) == 0
+						then
+							return
+						end
+						vim.lsp.buf.document_highlight()
+					end,
+				})
 
-			vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
-				buffer = event.buf,
-				group = highlight_augroup,
-				callback = vim.lsp.buf.clear_references,
-			})
+				vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+					buffer = event.buf,
+					group = highlight_augroup,
+					callback = vim.lsp.buf.clear_references,
+				})
+			end
 
 			vim.api.nvim_create_autocmd("LspDetach", {
 				group = vim.api.nvim_create_augroup("kickstart-lsp-detach", { clear = true }),
@@ -465,6 +484,10 @@ local servers = {
 	clangd = {},
 	harper_ls = {
 		filetypes = { "markdown", "typst" },
+		-- harper-ls pulls its config with workspace/configuration and reads
+		-- client.settings. Without this it received `[]` and logged
+		-- "Settings must be an object." on every change.
+		settings = { ["harper-ls"] = vim.empty_dict() },
 	},
 	-- gopls = {},
 	-- pyright = {},
@@ -781,7 +804,9 @@ vim.lsp.config("tinymist", {
 	cmd = { "tinymist" },
 	filetypes = { "typst" },
 	settings = {
-		formatterMode = "customtypstyle",
+		-- tinymist only accepts "disable", "typstyle" or "typstfmt".
+		-- ("customtypstyle" made every start log a bad-configuration error.)
+		formatterMode = "typstyle",
 		semanticTokens = "disable",
 	},
 })
