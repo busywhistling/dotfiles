@@ -115,6 +115,13 @@ function maintain
     end
   end
 
+  if test (hostname) = hetzner
+    if should_run $timestamp_dir hermes_update 21600 "6 hours"
+      hermes update
+      mark_run $timestamp_dir hermes_update
+    end
+  end
+
   # if should_run $timestamp_dir icloud_sync 21600 "6 hours"
   #   icloud-sync --mfa-sms -u (op read "op://Private/{{ .op.items.cloudAccount }}/username") -p (op read "op://Private/{{ .op.items.cloudAccount }}/password") -d ~/Pictures/.icloud-backups/paramjit
   #   icloud-sync --mfa-sms -u (op read "op://Private/{{ .op.items.cloudAccountFamily }}/username") -p (op read "op://Private/{{ .op.items.cloudAccountFamily }}/password") -d ~/Pictures/.icloud-backups/{{ .mail.tertiary.name }}
