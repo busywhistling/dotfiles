@@ -38,6 +38,13 @@ sourceDir = "~/.config/chezmoi/sourceDir"
     npmRegistry    = "{{ promptStringOnce . "external.npmRegistry"    "Private npm registry host (blank to skip)" }}"
     opencodePlugin = "{{ promptStringOnce . "external.opencodePlugin" "opencode plugin package (blank to skip)" }}"
 
+[data.media]
+    projectDir    = "{{ promptStringOnce . "media.projectDir"    "Media library project directory" }}"
+    libraryDir    = "{{ promptStringOnce . "media.libraryDir"    "Local media library directory" }}"
+    archiveDir    = "{{ promptStringOnce . "media.archiveDir"    "Local media archive directory" }}"
+    remoteDir     = "{{ promptStringOnce . "media.remoteDir"     "Remote media directory (host:path)" }}"
+    archiveBucket = "{{ promptStringOnce . "media.archiveBucket" "Media archive bucket name" }}"
+
 [data.op]
     aiVault = "{{ promptStringOnce . "op.aiVault" "1Password vault for AI keys" }}"
 
