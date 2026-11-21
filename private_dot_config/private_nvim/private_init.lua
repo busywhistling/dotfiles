@@ -46,7 +46,7 @@ o.updatetime = 250 -- default is 4000ms; keeps CursorHold (LSP/gitsigns) fresh
 o.grepprg = "rg --vimgrep --smart-case --hidden"
 o.grepformat = "%f:%l:%c:%m"
 
--- spell is enabled per filetype (see the autocmd at the bottom)
+-- spell is enabled per filetype (see the autocmd at the bottom; currently disabled)
 o.spelllang = "en_gb"
 o.fillchars = { eob = " " }
 
@@ -482,13 +482,13 @@ vim.lsp.config("*", { capabilities = capabilities })
 --  - settings (table): Override the default settings passed when initializing the server.
 local servers = {
 	clangd = {},
-	harper_ls = {
-		filetypes = { "markdown", "typst" },
-		-- harper-ls pulls its config with workspace/configuration and reads
-		-- client.settings. Without this it received `[]` and logged
-		-- "Settings must be an object." on every change.
-		settings = { ["harper-ls"] = vim.empty_dict() },
-	},
+	-- harper_ls = {
+	-- 	filetypes = { "markdown", "typst" },
+	-- 	-- harper-ls pulls its config with workspace/configuration and reads
+	-- 	-- client.settings. Without this it received `[]` and logged
+	-- 	-- "Settings must be an object." on every change.
+	-- 	settings = { ["harper-ls"] = vim.empty_dict() },
+	-- },
 	-- gopls = {},
 	-- pyright = {},
 	rust_analyzer = {},
@@ -512,7 +512,12 @@ end
 -- Enable explicitly. `mason-lspconfig`'s automatic_enable only sees servers
 -- Mason installed, so a compiler-provided server (e.g. rustup's
 -- rust-analyzer) would otherwise never start.
-vim.lsp.enable({ "clangd", "harper_ls", "lua_ls", "rust_analyzer" })
+vim.lsp.enable({
+	"clangd",
+	-- "harper_ls",
+	"lua_ls",
+	"rust_analyzer",
+})
 
 -- Ensure the servers and tools above are installed.
 -- To check the current status of installed tools and/or manually install
@@ -815,12 +820,12 @@ vim.lsp.enable("tinymist")
 -- [[ Quality of life ]]
 
 -- Spell only where prose is expected (the old config enabled it globally).
-vim.api.nvim_create_autocmd("FileType", {
-	pattern = { "gitcommit", "markdown", "text", "typst" },
-	callback = function()
-		vim.opt_local.spell = true
-	end,
-})
+-- vim.api.nvim_create_autocmd("FileType", {
+-- 	pattern = { "gitcommit", "markdown", "text", "typst" },
+-- 	callback = function()
+-- 		vim.opt_local.spell = true
+-- 	end,
+-- })
 
 -- Restore the cursor to where it was when the file was last open.
 vim.api.nvim_create_autocmd("BufReadPost", {
