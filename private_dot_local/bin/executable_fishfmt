@@ -8,14 +8,15 @@ Lines whose indentation fish_indent does not change — continuation lines and
 the contents of multi-line strings — are left exactly as they are.
 
 Usage:
-  fishfmt FILE...             rewrite files in place
-  fishfmt --check FILE...     exit 1 and list files that would change
-  fishfmt --all [--check]     every tracked .fish file
-  fishfmt --staged [--check]  staged .fish files (used by the commit hook)
+  fishfmt [--skip-vendored] FILE...  rewrite files in place
+  fishfmt --check FILE...            exit 1 and list files that would change
+  fishfmt --all [--check]            every tracked .fish file
+  fishfmt --staged [--check]         staged .fish files (used by the commit hook)
 
 --all and --staged skip code that follows someone else's indentation:
 completions, the tide plugin, fish_config's frozen bindings/theme, and fnm's
-init file.
+init file. --skip-vendored applies that same filter to explicit paths, which
+is how the Neovim integration avoids reformatting vendored files on save.
 """
 
 import argparse
@@ -140,7 +141,12 @@ def main(argv: list[str]) -> int:
     "-s",
     "--staged",
     action="store_true",
-    help="staged .fish files, except vendored code",
+    help="staged .fish files (used by the commit hook)",
+  )
+  parser.add_argument(
+    "--skip-vendored",
+    action="store_true",
+    help="also skip vendored code when paths are given",
   )
   parser.add_argument("files", nargs="*", metavar="FILE")
   args = parser.parse_args(argv)
@@ -155,6 +161,8 @@ def main(argv: list[str]) -> int:
     if not args.files:
       parser.error("no files given")
     files = args.files
+    if args.skip_vendored:
+      files = [name for name in files if not any(part in name for part in VENDORED)]
 
   changed = False
   failed = False

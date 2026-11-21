@@ -491,7 +491,15 @@ local servers = {
 	-- },
 	-- gopls = {},
 	-- pyright = {},
-	rust_analyzer = {},
+	ruff = {},
+	rust_analyzer = {
+		settings = {
+			["rust-analyzer"] = {
+				-- Surface clippy lints, not only `cargo check` errors.
+				check = { command = "clippy" },
+			},
+		},
+	},
 	-- ts_ls = {},
 	lua_ls = {
 		settings = {
@@ -516,6 +524,7 @@ vim.lsp.enable({
 	"clangd",
 	-- "harper_ls",
 	"lua_ls",
+	"ruff",
 	"rust_analyzer",
 })
 
@@ -535,6 +544,13 @@ setup("mason-lspconfig", {
 	ensure_installed = {}, -- installs are handled by mason-tool-installer
 	automatic_enable = false, -- handled by the explicit `vim.lsp.enable()` above
 })
+
+-- fishfmt is installed by chezmoi into ~/.local/bin, which a GUI-launched
+-- nvim does not always have on PATH.
+local fishfmt = vim.fn.exepath("fishfmt")
+if fishfmt == "" then
+	fishfmt = vim.fn.expand("~/.local/bin/fishfmt")
+end
 
 -- [[ conform: autoformat ]]
 setup("conform", {
@@ -561,8 +577,15 @@ setup("conform", {
 			command = "sd",
 			args = { "-p", "--across", "\n\n\n*", "\n\n" },
 		},
+		fishfmt = {
+			-- fishfmt edits files in place, so conform gives it a temp copy.
+			command = fishfmt,
+			args = { "--skip-vendored", "$FILENAME" },
+			stdin = false,
+		},
 	},
 	formatters_by_ft = {
+		fish = { "fishfmt" },
 		lua = { "stylua" },
 		typst = { "customtypstyle", "remove_extra_newlines", "trim_newlines" },
 		c = { "clang-format" },
@@ -574,6 +597,7 @@ setup("conform", {
 		jsonc = { "biome-check" },
 		css = { "biome-check" },
 		python = { "ruff_fix", "ruff_format", "ruff_organize_imports" },
+		rust = { "rustfmt" },
 	},
 })
 
