@@ -1,6 +1,8 @@
 # relative to the $HOME directory
 
 README.md  # to keep it in repo without applying it
+LICENSE    # repository metadata, not dotfiles
+.gitignore # repository metadata, not dotfiles
 
 **/.git
 **/.DS_Store

@@ -1,1 +1,1 @@
-{{ .email }} {{ .sshSigningKey }} {{ .email }}
+{{ if .email }}{{ .email }} {{ .sshSigningKey }} {{ .email }}{{ end }}

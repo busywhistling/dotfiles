@@ -1,3 +1,4 @@
+{{ if .aws.accountId -}}
 [profile {{ .aws.profile }}]
 sso_session = {{ .aws.profile }}
 sso_account_id = {{ .aws.accountId }}
@@ -8,3 +9,4 @@ region = eu-central-1
 sso_start_url = https://identitycenter.amazonaws.com/{{ .aws.ssoInstance }}
 sso_region = eu-central-1
 sso_registration_scopes = sso:account:access
+{{- end }}

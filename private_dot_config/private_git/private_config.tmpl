@@ -4,9 +4,11 @@
 # This is Git's per-user configuration file.
 [user]
   useConfigOnly = true
-  name = {{ .fullName }}
-  email = {{ .email }}
+  name = {{ .fullName | default "Your Name" }}
+  email = {{ .email | default "you@example.com" }}
+{{- if .sshSigningKey }}
 	signingkey = {{ .sshSigningKey }}
+{{- end }}
 
 [log]
   date = local

@@ -1,0 +1,16 @@
+# Runtime state and generated files that must never be published.
+.DS_Store
+**/.DS_Store
+
+# Stale editor backups
+*.lazy.bak
+*.bak
+
+# chezmoi runtime state
+private_dot_config/private_opencode/private_opencode-notifier-state.json
+private_dot_config/private_opencode/private_service.json
+private_dot_config/private_fish/private_fish_variables
+private_dot_config/private_karabiner/private_automatic_backups/
+
+# Dependencies
+**/node_modules/

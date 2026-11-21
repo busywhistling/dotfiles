@@ -1,5 +1,5 @@
-function ubuntu_vm --description "Start '{{ .vm.name }}' VM if needed, then ssh into it"
-  set -l vm "{{ .vm.name }}"
+function ubuntu_vm --description "Start '{{ .vm.name | default "Linux VM" }}' VM if needed, then ssh into it"
+  set -l vm "{{ .vm.name | default "Linux VM" }}"
 
   if utmctl status "$vm" | grep -qi "stopped"
     echo "Starting '$vm'..."
