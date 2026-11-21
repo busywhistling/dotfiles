@@ -1,0 +1,4 @@
+# Personal default: two-space indentation everywhere.
+# Project-level ruff.toml / pyproject.toml files take precedence over this one.
+
+indent-width = 2

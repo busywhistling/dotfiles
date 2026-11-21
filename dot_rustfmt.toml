@@ -1,0 +1,4 @@
+# Personal default: two-space indentation everywhere.
+# Project-level rustfmt.toml files take precedence over this one.
+
+tab_spaces = 2

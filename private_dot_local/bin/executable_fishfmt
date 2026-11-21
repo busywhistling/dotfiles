@@ -32,133 +32,145 @@ VENDORED = ("completions/", "_tide_", "tide/", "tide.fish", "fish_frozen_", "fnm
 
 
 def git(*args: str) -> list[str]:
-    proc = subprocess.run(["git", *args], capture_output=True, text=True)
-    if proc.returncode != 0:
-        sys.exit(f"fishfmt: git {args[0]} failed: {proc.stderr.strip()}")
-    return proc.stdout.splitlines()
+  proc = subprocess.run(["git", *args], capture_output=True, text=True)
+  if proc.returncode != 0:
+    sys.exit(f"fishfmt: git {args[0]} failed: {proc.stderr.strip()}")
+  return proc.stdout.splitlines()
 
 
 def repo_files(staged: bool) -> list[str]:
-    top = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True
-    )
-    if top.returncode != 0:
-        sys.exit("fishfmt: --all/--staged must be run inside a git repository")
-    os.chdir(top.stdout.strip())
+  top = subprocess.run(
+    ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True
+  )
+  if top.returncode != 0:
+    sys.exit("fishfmt: --all/--staged must be run inside a git repository")
+  os.chdir(top.stdout.strip())
 
-    if staged:
-        names = git("diff", "--cached", "--name-only", "--diff-filter=ACMR", "--", "*.fish")
-    else:
-        names = git("ls-files", "*.fish")
-    return [name for name in names if not any(part in name for part in VENDORED)]
+  if staged:
+    names = git("diff", "--cached", "--name-only", "--diff-filter=ACMR", "--", "*.fish")
+  else:
+    names = git("ls-files", "*.fish")
+  return [name for name in names if not any(part in name for part in VENDORED)]
 
 
 def read(path: Path) -> str:
-    with path.open("r", encoding=ENCODING, errors=ERRORS, newline="") as handle:
-        return handle.read()
+  with path.open("r", encoding=ENCODING, errors=ERRORS, newline="") as handle:
+    return handle.read()
 
 
 def write(path: Path, text: str) -> None:
-    with path.open("w", encoding=ENCODING, errors=ERRORS, newline="") as handle:
-        handle.write(text)
+  with path.open("w", encoding=ENCODING, errors=ERRORS, newline="") as handle:
+    handle.write(text)
 
 
 def split_lines(text: str) -> tuple[list[str], bool]:
-    """Split on newlines, remembering whether the text ended with one."""
-    ends = text.endswith("\n")
-    lines = text.split("\n")
-    if ends:
-        lines.pop()
-    return lines, ends
+  """Split on newlines, remembering whether the text ended with one."""
+  ends = text.endswith("\n")
+  lines = text.split("\n")
+  if ends:
+    lines.pop()
+  return lines, ends
 
 
 def reindent(text: str, path: Path) -> str:
-    """Return `text` with block indentation halved; other lines untouched."""
-    old_lines, ends = split_lines(text)
-    new_lines, _ = split_lines(indented(path))
-    if len(old_lines) != len(new_lines):
-        raise ValueError("fish_indent changed the line count")
+  """Return `text` with block indentation halved; other lines untouched."""
+  old_lines, ends = split_lines(text)
+  new_lines, _ = split_lines(indented(path))
+  if len(old_lines) != len(new_lines):
+    raise ValueError("fish_indent changed the line count")
 
-    out = []
-    for old, new in zip(old_lines, new_lines):
-        if not old.strip():
-            out.append(old)
-            continue
-        delta = (len(new) - len(new.lstrip())) - (len(old) - len(old.lstrip()))
-        if delta > 0 and delta % 4 == 0:
-            out.append(" " * (delta // 4 * 2) + new.lstrip())
-        else:
-            out.append(old)
-    return "\n".join(out) + ("\n" if ends else "")
+  out = []
+  for old, new in zip(old_lines, new_lines):
+    if not old.strip():
+      out.append(old)
+      continue
+    delta = (len(new) - len(new.lstrip())) - (len(old) - len(old.lstrip()))
+    if delta > 0 and delta % 4 == 0:
+      out.append(" " * (delta // 4 * 2) + new.lstrip())
+    else:
+      out.append(old)
+  return "\n".join(out) + ("\n" if ends else "")
 
 
 def indented(path: Path) -> str:
-    proc = subprocess.run(
-        ["fish_indent", "--only-indent", "--", str(path)], capture_output=True
-    )
-    if proc.returncode != 0:
-        detail = proc.stderr.decode(ENCODING, ERRORS).strip()
-        raise ValueError(f"fish_indent failed: {detail}")
-    return proc.stdout.decode(ENCODING, ERRORS)
+  proc = subprocess.run(
+    ["fish_indent", "--only-indent", "--", str(path)], capture_output=True
+  )
+  if proc.returncode != 0:
+    detail = proc.stderr.decode(ENCODING, ERRORS).strip()
+    raise ValueError(f"fish_indent failed: {detail}")
+  return proc.stdout.decode(ENCODING, ERRORS)
 
 
 def format_file(name: str, check: bool) -> bool:
-    """Format one file. Returns True when it changed (or would, with --check)."""
-    path = Path(name)
-    if not path.is_file():
-        raise FileNotFoundError("not a regular file")
+  """Format one file. Returns True when it changed (or would, with --check)."""
+  path = Path(name)
+  if not path.is_file():
+    raise FileNotFoundError("not a regular file")
 
-    src = read(path)
-    result = reindent(src, path)
-    if result == src:
-        return False
-    if check:
-        print(name)
-        return True
-    write(path, result)
+  src = read(path)
+  result = reindent(src, path)
+  if result == src:
+    return False
+  if check:
+    print(name)
     return True
+  write(path, result)
+  return True
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(
-        prog="fishfmt",
-        description="Indent fish scripts with two spaces per level.",
-    )
-    parser.add_argument("-c", "--check", action="store_true",
-                        help="list files that would change; exit 1 if any")
-    parser.add_argument("-a", "--all", action="store_true",
-                        help="every tracked .fish file, except vendored code")
-    parser.add_argument("-s", "--staged", action="store_true",
-                        help="staged .fish files, except vendored code")
-    parser.add_argument("files", nargs="*", metavar="FILE")
-    args = parser.parse_args(argv)
+  parser = argparse.ArgumentParser(
+    prog="fishfmt",
+    description="Indent fish scripts with two spaces per level.",
+  )
+  parser.add_argument(
+    "-c",
+    "--check",
+    action="store_true",
+    help="list files that would change; exit 1 if any",
+  )
+  parser.add_argument(
+    "-a",
+    "--all",
+    action="store_true",
+    help="every tracked .fish file, except vendored code",
+  )
+  parser.add_argument(
+    "-s",
+    "--staged",
+    action="store_true",
+    help="staged .fish files, except vendored code",
+  )
+  parser.add_argument("files", nargs="*", metavar="FILE")
+  args = parser.parse_args(argv)
 
-    if args.all or args.staged:
-        if args.files:
-            parser.error("--all/--staged take no paths")
-        files = repo_files(staged=args.staged)
-        if not files:
-            return 0
-    else:
-        if not args.files:
-            parser.error("no files given")
-        files = args.files
+  if args.all or args.staged:
+    if args.files:
+      parser.error("--all/--staged take no paths")
+    files = repo_files(staged=args.staged)
+    if not files:
+      return 0
+  else:
+    if not args.files:
+      parser.error("no files given")
+    files = args.files
 
-    changed = False
-    failed = False
-    for name in files:
-        try:
-            changed = format_file(name, args.check) or changed
-        except (OSError, ValueError) as exc:
-            print(f"fishfmt: {name}: {exc}", file=sys.stderr)
-            failed = True
+  changed = False
+  failed = False
+  for name in files:
+    try:
+      changed = format_file(name, args.check) or changed
+    except (OSError, ValueError) as exc:
+      print(f"fishfmt: {name}: {exc}", file=sys.stderr)
+      failed = True
 
-    if failed:
-        return 2
-    if args.check and changed:
-        return 1
-    return 0
+  if failed:
+    return 2
+  if args.check and changed:
+    return 1
+  return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+  sys.exit(main(sys.argv[1:]))
