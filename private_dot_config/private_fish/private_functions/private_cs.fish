@@ -1,3 +1,3 @@
 function cs
-  chezmoi status
+  chezmoi status --exclude=scripts
 end

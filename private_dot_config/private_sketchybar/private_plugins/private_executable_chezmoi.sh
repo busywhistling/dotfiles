@@ -4,7 +4,7 @@
 # the item invoking this script:
 # https://felixkratz.github.io/SketchyBar/config/events#events-and-scripting
 
-STATUS=$(chezmoi status 2>/dev/null)
+STATUS=$(chezmoi status --exclude=scripts 2>/dev/null)
 
 if [ -n "$STATUS" ]; then
   sketchybar --set "$NAME" label="chezmoi is out of sync" drawing=on
