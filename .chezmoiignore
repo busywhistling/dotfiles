@@ -21,6 +21,7 @@ LICENSE    # repository metadata, not dotfiles
 .opencode
 .claude.json.backup
 .cups
+.CFUserTextEncoding
 .obsidian-cli.sock
 .gnupg
 .homebrew
