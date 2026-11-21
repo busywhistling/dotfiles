@@ -75,3 +75,8 @@ Pictures
 .config/mbsyncrc
 .config/Brewfile-macbook
 {{ end }}
+
+# .hushlogin suppresses the login banner; only needed on the Linux hosts.
+{{ if ne .chezmoi.os "linux" }}
+.hushlogin
+{{ end }}
