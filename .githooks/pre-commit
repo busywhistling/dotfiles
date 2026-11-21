@@ -1,5 +1,5 @@
 #!/usr/bin/env fish
-# Reject commits that would leave first-party fish scripts unformatted.
+# Reject commits that would leave first-party fish or TOML files unformatted.
 #
 # Enable once per clone:
 #   git config core.hooksPath .githooks
@@ -7,17 +7,37 @@
 # Vendored fish code (tide, completions, fish_config's frozen files, fnm's init)
 # is skipped so that upstream updates do not trip the check.
 
-if not command -q fishfmt
+if command -q fishfmt
+  set -l out (fishfmt --staged --check)
+  if test $status -ne 0
+    printf 'Commit blocked: fish scripts are not indented with two spaces.\n' >&2
+    printf 'Run `fishfmt --all` (or `fishfmt <file>`) and stage the result:\n' >&2
+    printf '  %s\n' $out >&2
+    exit 1
+  end
+else
   printf 'pre-commit: fishfmt not in PATH; skipping the fish indentation check\n' >&2
-  exit 0
 end
 
-set -l out (fishfmt --staged --check)
-if test $status -ne 0
-  printf 'Commit blocked: fish scripts are not indented with two spaces.\n' >&2
-  printf 'Run `fishfmt --all` (or `fishfmt <file>`) and stage the result:\n' >&2
-  printf '  %s\n' $out >&2
-  exit 1
+if command -q taplo
+  set -l toml_files (git diff --cached --name-only --diff-filter=ACM -- '*.toml')
+  if test (count $toml_files) -gt 0
+    set -l fmt_out (taplo fmt --check $toml_files 2>&1)
+    if test $status -ne 0
+      printf 'Commit blocked: TOML files are not formatted.\n' >&2
+      printf 'Run `taplo fmt <file>` and stage the result:\n' >&2
+      printf '  %s\n' $fmt_out >&2
+      exit 1
+    end
+    set -l lint_out (taplo lint $toml_files 2>&1)
+    if test $status -ne 0
+      printf 'Commit blocked: TOML lint errors.\n' >&2
+      printf '  %s\n' $lint_out >&2
+      exit 1
+    end
+  end
+else
+  printf 'pre-commit: taplo not in PATH; skipping the TOML check\n' >&2
 end
 
 exit 0

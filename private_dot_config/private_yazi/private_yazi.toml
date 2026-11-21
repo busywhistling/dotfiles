@@ -1,77 +1,77 @@
 [mgr]
-ratio = [0,1,3]
-show_hidden = true
-# custom config, only works for fork: https://github.com/spencer-michaels/yazi
-exclude = [
-  ".DS_Store",          # exact filename
-  "Thumbs.db",          # exact filename
-  "/Users/paramjit/.Trash",
-  "/Users/paramjit/.agent-browser",
-  "/Users/paramjit/.obsidian-cli.sock",
-  "/Users/paramjit/.android",
-  "/Users/paramjit/.aws",
-  "/Users/paramjit/.bun",
-  "/Users/paramjit/.cache",
-  "/Users/paramjit/.cargo",
-  "/Users/paramjit/.notes",
-  "/Users/paramjit/.gradle",
-  "/Users/paramjit/.CFUserTextEncoding",
-  "/Users/paramjit/.emulator_console_auth_token",
-  "/Users/paramjit/.claude",
-  "/Users/paramjit/.opencode",
-  "/Users/paramjit/Documents/Busycal_backups",
-  "/Users/paramjit/Documents/Zwift",
-  "/Users/paramjit/.claude.json",
-  "/Users/paramjit/.claude.json.backup",
-  "/Users/paramjit/.config/1Password",
-  "/Users/paramjit/.config/configstore",
-  "/Users/paramjit/.config/containers",
-  "/Users/paramjit/.config/fish/fishd.tmp.*",
-  "/Users/paramjit/.config/karabiner/automatic_backups",
-  "/Users/paramjit/.cups",
-  "/Users/paramjit/.gnupg",
-  "/Users/paramjit/.lima",
-  "/Users/paramjit/Documents/mailboxes",
-  "/Users/paramjit/Pictures/Screenshots",
-  "/Users/paramjit/.homebrew",
-  "/Users/paramjit/.hushlogin",
-  "/Users/paramjit/.local",
-  "/Users/paramjit/.local/state",
-  "/Users/paramjit/Applications",
-  "/Users/paramjit/.nono",
-  "/Users/paramjit/.npm",
-  "/Users/paramjit/.pulumi",
-  "/Users/paramjit/.rustup",
-  "/Users/paramjit/.ssh",
-  "/Users/paramjit/.thumbnails",
-  "/Users/paramjit/Desktop",
-  "/Users/paramjit/Library",
-  "/Users/paramjit/Movies",
-  "/Users/paramjit/Music/Music",
-  "*.pyc",              # filename glob (matches anywhere)
-  "*.o",
-  "__pycache__",        # bare directory name
-  ".git",        # bare directory name
-  "node_modules",
-  # "build/output/*.tmp", # path pattern — auto-prefixed with **/, only matches under build/output
-  # "**/cache.bin",       # explicit **/ — left as-is
-]
+  ratio = [0, 1, 3]
+  show_hidden = true
+  # custom config, only works for fork: https://github.com/spencer-michaels/yazi
+  exclude = [
+    ".DS_Store", # exact filename
+    "Thumbs.db", # exact filename
+    "/Users/paramjit/.Trash",
+    "/Users/paramjit/.agent-browser",
+    "/Users/paramjit/.obsidian-cli.sock",
+    "/Users/paramjit/.android",
+    "/Users/paramjit/.aws",
+    "/Users/paramjit/.bun",
+    "/Users/paramjit/.cache",
+    "/Users/paramjit/.cargo",
+    "/Users/paramjit/.notes",
+    "/Users/paramjit/.gradle",
+    "/Users/paramjit/.CFUserTextEncoding",
+    "/Users/paramjit/.emulator_console_auth_token",
+    "/Users/paramjit/.claude",
+    "/Users/paramjit/.opencode",
+    "/Users/paramjit/Documents/Busycal_backups",
+    "/Users/paramjit/Documents/Zwift",
+    "/Users/paramjit/.claude.json",
+    "/Users/paramjit/.claude.json.backup",
+    "/Users/paramjit/.config/1Password",
+    "/Users/paramjit/.config/configstore",
+    "/Users/paramjit/.config/containers",
+    "/Users/paramjit/.config/fish/fishd.tmp.*",
+    "/Users/paramjit/.config/karabiner/automatic_backups",
+    "/Users/paramjit/.cups",
+    "/Users/paramjit/.gnupg",
+    "/Users/paramjit/.lima",
+    "/Users/paramjit/Documents/mailboxes",
+    "/Users/paramjit/Pictures/Screenshots",
+    "/Users/paramjit/.homebrew",
+    "/Users/paramjit/.hushlogin",
+    "/Users/paramjit/.local",
+    "/Users/paramjit/.local/state",
+    "/Users/paramjit/Applications",
+    "/Users/paramjit/.nono",
+    "/Users/paramjit/.npm",
+    "/Users/paramjit/.pulumi",
+    "/Users/paramjit/.rustup",
+    "/Users/paramjit/.ssh",
+    "/Users/paramjit/.thumbnails",
+    "/Users/paramjit/Desktop",
+    "/Users/paramjit/Library",
+    "/Users/paramjit/Movies",
+    "/Users/paramjit/Music/Music",
+    "*.pyc", # filename glob (matches anywhere)
+    "*.o",
+    "__pycache__", # bare directory name
+    ".git", # bare directory name
+    "node_modules",
+    # "build/output/*.tmp", # path pattern — auto-prefixed with **/, only matches under build/output
+    # "**/cache.bin",       # explicit **/ — left as-is
+  ]
 
 [opener]
-# Open Obsidian Canvas boards (.canvas) in the Obsidian app.
-# The helper looks up the registered vault containing the file (Obsidian
-# compares vault paths case-sensitively, macOS does not) and calls
-# `obsidian://open?vault=<name>&file=<relative path>`.
-obsidian = [
-  { run = '$HOME/.config/yazi/scripts/obsidian-open %s', desc = "Obsidian", for = "macos" },
-]
+  # Open Obsidian Canvas boards (.canvas) in the Obsidian app.
+  # The helper looks up the registered vault containing the file (Obsidian
+  # compares vault paths case-sensitively, macOS does not) and calls
+  # `obsidian://open?vault=<name>&file=<relative path>`.
+  obsidian = [
+    { run = '$HOME/.config/yazi/scripts/obsidian-open %s', desc = "Obsidian", for = "macos" },
+  ]
 
 [open]
-prepend_rules = [
-  # Canvas files are JSON under the hood, so match by extension to keep them
-  # away from the default `application/json` -> `edit` rule.
-  { url = "*.canvas", use = "obsidian" },
-]
+  prepend_rules = [
+    # Canvas files are JSON under the hood, so match by extension to keep them
+    # away from the default `application/json` -> `edit` rule.
+    { url = "*.canvas", use = "obsidian" },
+  ]
 
 [plugin]
   prepend_preloaders = [
@@ -98,7 +98,7 @@ prepend_rules = [
 
   prepend_previewers = [
     # Replace magick, image, video with mediainfo
-    { mime = "{audio,video,image}/*", run = "mediainfo"},
+    { mime = "{audio,video,image}/*", run = "mediainfo" },
     # .srt subtitle, adobe illustrator, adobe photoshop file
     { mime = "application/{subrip,postscript,illustrator,dvb.ait,vnd.adobe.illustrator,eps}", run = "mediainfo" },
 
@@ -127,5 +127,4 @@ prepend_rules = [
 # you may need to increase the memory limit if no image is rendered.
 # https://yazi-rs.github.io/docs/configuration/yazi#tasks
 [tasks]
-  image_alloc      = 1073741824        # = 1024*1024*1024 = 1024MB
-
+  image_alloc = 1073741824 # = 1024*1024*1024 = 1024MB

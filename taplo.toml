@@ -1,0 +1,5 @@
+# Two-space TOML formatting for this repository.
+[formatting]
+  indent_string = "  "
+  indent_entries = true
+  align_comments = false

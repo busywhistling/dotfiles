@@ -3,72 +3,72 @@ sourceDir = "~/.config/chezmoi/sourceDir"
 # Personal values. None of these are committed: chezmoi writes the answers to
 # ~/.config/chezmoi/chezmoi.toml, which is outside the source directory.
 [data]
-    fullName      = "{{ promptStringOnce . "fullName"      "Full name for git commits" }}"
-    email         = "{{ promptStringOnce . "email"         "Primary git email" }}"
-    sshSigningKey = "{{ promptStringOnce . "sshSigningKey" "SSH signing public key (ssh-ed25519 AAAA...)" }}"
+  fullName      = "{{ promptStringOnce . "fullName"      "Full name for git commits" }}"
+  email         = "{{ promptStringOnce . "email"         "Primary git email" }}"
+  sshSigningKey = "{{ promptStringOnce . "sshSigningKey" "SSH signing public key (ssh-ed25519 AAAA...)" }}"
 
 [data.vps]
-    host = "{{ promptStringOnce . "vps.host" "VPS host or IP" }}"
-    port = "{{ promptStringOnce . "vps.port" "VPS SSH port" }}"
-    user = "{{ promptStringOnce . "vps.user" "VPS SSH user" }}"
+  host = "{{ promptStringOnce . "vps.host" "VPS host or IP" }}"
+  port = "{{ promptStringOnce . "vps.port" "VPS SSH port" }}"
+  user = "{{ promptStringOnce . "vps.user" "VPS SSH user" }}"
 
 [data.lan]
-    dietpi = "{{ promptStringOnce . "lan.dietpi" "dietpi LAN host or IP" }}"
+  dietpi = "{{ promptStringOnce . "lan.dietpi" "dietpi LAN host or IP" }}"
 
 [data.vm]
-    name = "{{ promptStringOnce . "vm.name" "UTM VM name" }}"
-    ip   = "{{ promptStringOnce . "vm.ip" "UTM VM IP" }}"
+  name = "{{ promptStringOnce . "vm.name" "UTM VM name" }}"
+  ip   = "{{ promptStringOnce . "vm.ip" "UTM VM IP" }}"
 
 [data.mail.secondary]
-    name    = "{{ promptStringOnce . "mail.secondary.name"    "Second mailbox label" }}"
-    address = "{{ promptStringOnce . "mail.secondary.address" "Second mailbox address" }}"
+  name    = "{{ promptStringOnce . "mail.secondary.name"    "Second mailbox label" }}"
+  address = "{{ promptStringOnce . "mail.secondary.address" "Second mailbox address" }}"
 
 [data.mail.tertiary]
-    name    = "{{ promptStringOnce . "mail.tertiary.name"    "Third mailbox label" }}"
-    address = "{{ promptStringOnce . "mail.tertiary.address" "Third mailbox address" }}"
+  name    = "{{ promptStringOnce . "mail.tertiary.name"    "Third mailbox label" }}"
+  address = "{{ promptStringOnce . "mail.tertiary.address" "Third mailbox address" }}"
 
 # Optional integrations. Leave a value blank to skip the corresponding block.
 [data.aws]
-    profile     = "{{ promptStringOnce . "aws.profile"     "AWS SSO profile name (blank to skip)" }}"
-    accountId   = "{{ promptStringOnce . "aws.accountId"   "AWS SSO account id (blank to skip)" }}"
-    ssoInstance = "{{ promptStringOnce . "aws.ssoInstance" "AWS SSO instance id (blank to skip)" }}"
+  profile     = "{{ promptStringOnce . "aws.profile"     "AWS SSO profile name (blank to skip)" }}"
+  accountId   = "{{ promptStringOnce . "aws.accountId"   "AWS SSO account id (blank to skip)" }}"
+  ssoInstance = "{{ promptStringOnce . "aws.ssoInstance" "AWS SSO instance id (blank to skip)" }}"
 
 [data.external]
-    npmScope       = "{{ promptStringOnce . "external.npmScope"       "npm @scope for the private registry (blank to skip)" }}"
-    npmRegistry    = "{{ promptStringOnce . "external.npmRegistry"    "Private npm registry host (blank to skip)" }}"
-    opencodePlugin = "{{ promptStringOnce . "external.opencodePlugin" "opencode plugin package (blank to skip)" }}"
+  npmScope       = "{{ promptStringOnce . "external.npmScope"       "npm @scope for the private registry (blank to skip)" }}"
+  npmRegistry    = "{{ promptStringOnce . "external.npmRegistry"    "Private npm registry host (blank to skip)" }}"
+  opencodePlugin = "{{ promptStringOnce . "external.opencodePlugin" "opencode plugin package (blank to skip)" }}"
 
 [data.media]
-    projectDir    = "{{ promptStringOnce . "media.projectDir"    "Media library project directory" }}"
-    libraryDir    = "{{ promptStringOnce . "media.libraryDir"    "Local media library directory" }}"
-    archiveDir    = "{{ promptStringOnce . "media.archiveDir"    "Local media archive directory" }}"
-    remoteDir     = "{{ promptStringOnce . "media.remoteDir"     "Remote media directory (host:path)" }}"
-    archiveBucket = "{{ promptStringOnce . "media.archiveBucket" "Media archive bucket name" }}"
+  projectDir    = "{{ promptStringOnce . "media.projectDir"    "Media library project directory" }}"
+  libraryDir    = "{{ promptStringOnce . "media.libraryDir"    "Local media library directory" }}"
+  archiveDir    = "{{ promptStringOnce . "media.archiveDir"    "Local media archive directory" }}"
+  remoteDir     = "{{ promptStringOnce . "media.remoteDir"     "Remote media directory (host:path)" }}"
+  archiveBucket = "{{ promptStringOnce . "media.archiveBucket" "Media archive bucket name" }}"
 
 [data.op]
-    aiVault = "{{ promptStringOnce . "op.aiVault" "1Password vault for AI keys" }}"
+  aiVault = "{{ promptStringOnce . "op.aiVault" "1Password vault for AI keys" }}"
 
 [data.ai]
-    commitModel = "{{ promptStringOnce . "ai.commitModel" "Model id for the lazygit commit-message command (blank to skip)" }}"
+  commitModel = "{{ promptStringOnce . "ai.commitModel" "Model id for the lazygit commit-message command (blank to skip)" }}"
 
 [data.ai.env]
-    primary = "{{ promptStringOnce . "ai.env.primary" "Env var holding the primary AI API key" }}"
-    proxy   = "{{ promptStringOnce . "ai.env.proxy"   "Env var holding the AI proxy token" }}"
-    docs    = "{{ promptStringOnce . "ai.env.docs"    "Env var holding the docs-search API key" }}"
+  primary = "{{ promptStringOnce . "ai.env.primary" "Env var holding the primary AI API key" }}"
+  proxy   = "{{ promptStringOnce . "ai.env.proxy"   "Env var holding the AI proxy token" }}"
+  docs    = "{{ promptStringOnce . "ai.env.docs"    "Env var holding the docs-search API key" }}"
 
 # 1Password item names. Vault and field names are generic; only the item
 # names are specific to your vault.
 [data.op.items]
-    aiPrimary           = "{{ promptStringOnce . "op.items.aiPrimary"           "1Password item: primary AI API key" }}"
-    aiProxy             = "{{ promptStringOnce . "op.items.aiProxy"             "1Password item: AI proxy token" }}"
-    docsSearch          = "{{ promptStringOnce . "op.items.docsSearch"          "1Password item: docs-search API key" }}"
-    cloudAccount        = "{{ promptStringOnce . "op.items.cloudAccount"        "1Password item: cloud account" }}"
-    cloudAccountFamily  = "{{ promptStringOnce . "op.items.cloudAccountFamily"  "1Password item: family cloud account" }}"
-    backupPrimary       = "{{ promptStringOnce . "op.items.backupPrimary"       "1Password item: primary backup access key" }}"
-    backupPrimaryRestic = "{{ promptStringOnce . "op.items.backupPrimaryRestic" "1Password item: primary backup repo password" }}"
-    backupArchive       = "{{ promptStringOnce . "op.items.backupArchive"       "1Password item: archive backup access key" }}"
-    backupArchiveRestic = "{{ promptStringOnce . "op.items.backupArchiveRestic" "1Password item: archive backup repo password" }}"
-    mailPrimary         = "{{ promptStringOnce . "op.items.mailPrimary"         "1Password item: primary mailbox app password" }}"
-    mailSecondary       = "{{ promptStringOnce . "op.items.mailSecondary"       "1Password item: second mailbox app password" }}"
-    mailTertiary        = "{{ promptStringOnce . "op.items.mailTertiary"        "1Password item: third mailbox app password" }}"
+  aiPrimary           = "{{ promptStringOnce . "op.items.aiPrimary"           "1Password item: primary AI API key" }}"
+  aiProxy             = "{{ promptStringOnce . "op.items.aiProxy"             "1Password item: AI proxy token" }}"
+  docsSearch          = "{{ promptStringOnce . "op.items.docsSearch"          "1Password item: docs-search API key" }}"
+  cloudAccount        = "{{ promptStringOnce . "op.items.cloudAccount"        "1Password item: cloud account" }}"
+  cloudAccountFamily  = "{{ promptStringOnce . "op.items.cloudAccountFamily"  "1Password item: family cloud account" }}"
+  backupPrimary       = "{{ promptStringOnce . "op.items.backupPrimary"       "1Password item: primary backup access key" }}"
+  backupPrimaryRestic = "{{ promptStringOnce . "op.items.backupPrimaryRestic" "1Password item: primary backup repo password" }}"
+  backupArchive       = "{{ promptStringOnce . "op.items.backupArchive"       "1Password item: archive backup access key" }}"
+  backupArchiveRestic = "{{ promptStringOnce . "op.items.backupArchiveRestic" "1Password item: archive backup repo password" }}"
+  mailPrimary         = "{{ promptStringOnce . "op.items.mailPrimary"         "1Password item: primary mailbox app password" }}"
+  mailSecondary       = "{{ promptStringOnce . "op.items.mailSecondary"       "1Password item: second mailbox app password" }}"
+  mailTertiary        = "{{ promptStringOnce . "op.items.mailTertiary"        "1Password item: third mailbox app password" }}"
 

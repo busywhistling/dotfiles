@@ -467,6 +467,9 @@ vim.diagnostic.config({
 	virtual_lines = { current_line = true },
 })
 
+-- Use the chezmoi-managed taplo config regardless of the buffer cwd.
+vim.env.TAPLO_CONFIG = vim.fn.expand("~/.config/taplo/taplo.toml")
+
 -- Extra capabilities provided by blink.cmp, broadcast to all servers.
 local capabilities = try(function()
 	return require("blink.cmp").get_lsp_capabilities()
@@ -500,6 +503,7 @@ local servers = {
 			},
 		},
 	},
+	taplo = {},
 	-- ts_ls = {},
 	lua_ls = {
 		settings = {
@@ -526,6 +530,7 @@ vim.lsp.enable({
 	"lua_ls",
 	"ruff",
 	"rust_analyzer",
+	"taplo",
 })
 
 -- Ensure the servers and tools above are installed.
@@ -596,6 +601,7 @@ setup("conform", {
 		json = { "biome-check" },
 		jsonc = { "biome-check" },
 		css = { "biome-check" },
+		toml = { "taplo" },
 		python = { "ruff_fix", "ruff_format", "ruff_organize_imports" },
 		rust = { "rustfmt" },
 	},

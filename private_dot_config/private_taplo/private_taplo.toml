@@ -1,0 +1,5 @@
+# Two-space TOML formatting, used by the editor and the taplo CLI.
+[formatting]
+  indent_string = "  "
+  indent_entries = true
+  align_comments = false
