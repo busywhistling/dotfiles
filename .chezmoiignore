@@ -67,6 +67,9 @@ Pictures
 .config/opencode/opencode-notifier-state.json
 .config/opencode/service.json
 
+# Vendored plugin screenshots; not needed on target machines.
+.config/yazi/plugins/mediainfo.yazi/assets
+
 .config/hometube
 
 {{ if ne .chezmoi.hostname "macbook" }}
