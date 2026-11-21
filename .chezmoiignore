@@ -3,6 +3,7 @@
 README.md  # to keep it in repo without applying it
 LICENSE    # repository metadata, not dotfiles
 .gitignore # repository metadata, not dotfiles
+.githooks  # repository metadata, not dotfiles
 
 **/.git
 **/.DS_Store
@@ -30,6 +31,7 @@ LICENSE    # repository metadata, not dotfiles
 !.local/bin
 .local/bin/*
 !.local/bin/push-screenshots
+!.local/bin/fishfmt
 .nono
 .notes
 .npm

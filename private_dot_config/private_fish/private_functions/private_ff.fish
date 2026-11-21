@@ -1,3 +1,3 @@
 function ff
-    fastfetch
+  fastfetch
 end

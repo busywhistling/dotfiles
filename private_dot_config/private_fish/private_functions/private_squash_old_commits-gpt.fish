@@ -85,13 +85,13 @@ set -l author_email (git show -s --format=%ae $last_old_commit)
 set -l author_date (git show -s --format=%aI $last_old_commit)
 
 set -l new_root_commit (env \
-  GIT_AUTHOR_NAME="$author_name" \
-  GIT_AUTHOR_EMAIL="$author_email" \
-  GIT_AUTHOR_DATE="$author_date" \
-  GIT_COMMITTER_NAME="$author_name" \
-  GIT_COMMITTER_EMAIL="$author_email" \
-  GIT_COMMITTER_DATE="$author_date" \
-  git commit-tree "$last_old_commit^{tree}" -m "$squash_message")
+    GIT_AUTHOR_NAME="$author_name" \
+    GIT_AUTHOR_EMAIL="$author_email" \
+    GIT_AUTHOR_DATE="$author_date" \
+    GIT_COMMITTER_NAME="$author_name" \
+    GIT_COMMITTER_EMAIL="$author_email" \
+    GIT_COMMITTER_DATE="$author_date" \
+    git commit-tree "$last_old_commit^{tree}" -m "$squash_message")
 
 if test $status -ne 0
   echo "error: could not create squashed initial commit" >&2

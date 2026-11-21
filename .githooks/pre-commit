@@ -1,0 +1,23 @@
+#!/usr/bin/env fish
+# Reject commits that would leave first-party fish scripts unformatted.
+#
+# Enable once per clone:
+#   git config core.hooksPath .githooks
+#
+# Vendored fish code (tide, completions, fish_config's frozen files, fnm's init)
+# is skipped so that upstream updates do not trip the check.
+
+if not command -q fishfmt
+  printf 'pre-commit: fishfmt not in PATH; skipping the fish indentation check\n' >&2
+  exit 0
+end
+
+set -l out (fishfmt --staged --check)
+if test $status -ne 0
+  printf 'Commit blocked: fish scripts are not indented with two spaces.\n' >&2
+  printf 'Run `fishfmt --all` (or `fishfmt <file>`) and stage the result:\n' >&2
+  printf '  %s\n' $out >&2
+  exit 1
+end
+
+exit 0

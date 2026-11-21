@@ -1,9 +1,9 @@
 function sync_media_library
-    cd {{ .media.projectDir }}
-    uv sync --upgrade
-    uv run src/main.py
-    git commit -am "chore: update media library"
-    git push
+  cd {{ .media.projectDir }}
+  uv sync --upgrade
+  uv run src/main.py
+  git commit -am "chore: update media library"
+  git push
 
-    uv run src/main.py --delete-local
+  uv run src/main.py --delete-local
 end
