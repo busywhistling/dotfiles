@@ -3,6 +3,7 @@
 # Taps
 tap "1password/tap"
 tap "anomalyco/tap"
+tap "betterleaks/tap"
 tap "felixkratz/formulae"
 tap "oven-sh/bun"
 tap "pulumi/tap"
@@ -96,7 +97,7 @@ brew "sd"  # Intuitive find & replace CLI
 brew "socat"  # SOcket CAT: netcat on steroids
 brew "stockfish"  # Strong open-source chess engine
 brew "swiftformat"  # Formatting tool for reformatting Swift code
-brew "taplo"  # TOML toolkit: formatter and linter
+brew "taplo"  # TOML toolkit written in Rust
 brew "termshark"  # Terminal UI for tshark, inspired by Wireshark
 brew "tidy-html5"  # Granddaddy of HTML tools, with support for modern standards
 brew "tinymist"  # Services for Typst
@@ -126,6 +127,7 @@ cask "androidtool"  # App for recording the screen and installing apps in iOS an
 cask "anomalyco/tap/hex"  # Local voice dictation
 cask "balenaetcher"  # Tool to flash OS images to SD cards & USB drives
 cask "beeper"  # Universal chat app powered by Matrix
+cask "betterleaks/tap/betterleaks"  # Secrets scanner built on the legacy of gitleaks
 cask "blender"  # 3D creation suite
 cask "brave-origin"  # Privacy-focused web browser
 cask "busycal"  # Calendar software focusing on flexibility and reliability
