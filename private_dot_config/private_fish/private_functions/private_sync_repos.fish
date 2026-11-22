@@ -5,7 +5,7 @@ function sync_repos
   cd "/Users/paramjit/Documents/2_dev"
   hub sync --color
 
-  cd /Users/paramjit/Documents/4_gitclones
+  cd /Users/paramjit/Documents/4_github
   printf "\nSyncing downloaded repos\n"
   for repo in (ls)
     cd $repo
@@ -16,5 +16,5 @@ function sync_repos
 
   cd $path
 
-  ls ~/Documents/4_gitclones/ > ~/Documents/5_notes/gitclones.typ
+  ls ~/Documents/4_github/ > ~/Documents/5_notes/gitclones.typ
 end

@@ -1,32 +1,32 @@
 function timemachine_exclude
   echo "Ignoring directories from time machine backup"
   fd "^\.yarn\$" ~/Documents \
-    --unrestricted --type d --prune -E 4_gitclones -E node_modules \
+    --unrestricted --type d --prune -E 4_github -E node_modules \
     --exclude node_modules \
     -x sudo tmutil addexclusion -p {} 
   fd "^\.venv\$" ~/Documents \
-    --unrestricted --type d --prune -E 4_gitclones -E node_modules \
+    --unrestricted --type d --prune -E 4_github -E node_modules \
     -x sudo tmutil addexclusion -p {} 
   fd "^node_modules\$" ~/Documents \
-    --unrestricted --type d --prune -E .next -E 4_gitclones \
+    --unrestricted --type d --prune -E .next -E 4_github \
     -x sudo tmutil addexclusion -p {}
   fd "^\.git\$" ~/Documents \
-    --unrestricted --type d --prune -E 4_gitclones -E node_modules \
+    --unrestricted --type d --prune -E 4_github -E node_modules \
     -x sudo tmutil addexclusion -p {} 
   fd "^\.next\$" ~/Documents \
-    --unrestricted --type d --prune -E 4_gitclones -E node_modules \
+    --unrestricted --type d --prune -E 4_github -E node_modules \
     -x sudo tmutil addexclusion -p {} 
   fd "^\.turbo\$" ~/Documents \
-    --unrestricted --type d --prune -E 4_gitclones -E node_modules \
+    --unrestricted --type d --prune -E 4_github -E node_modules \
     -x sudo tmutil addexclusion -p {} 
   fd "^\.cargo\$" ~/Documents \
-    --unrestricted --type d --prune -E 4_gitclones -E node_modules \
+    --unrestricted --type d --prune -E 4_github -E node_modules \
     -x sudo tmutil addexclusion -p {} 
   fd "^target\$" ~/Documents \
-    --unrestricted --type d --prune -E 4_gitclones -E node_modules \
+    --unrestricted --type d --prune -E 4_github -E node_modules \
     -x sudo tmutil addexclusion -p {} 
 
-  sudo tmutil addexclusion -p /Users/paramjit/Documents/4_gitclones
+  sudo tmutil addexclusion -p /Users/paramjit/Documents/4_github
   sudo tmutil addexclusion -p /Users/paramjit/.local/share
   sudo tmutil addexclusion -p /Users/paramjit/.agent-browser
   sudo tmutil addexclusion -p /Users/paramjit/Pictures

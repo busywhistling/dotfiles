@@ -14,7 +14,7 @@ project's `.opencode/skills/` first, then edit that copy.
 
 Never create arbitrary directories in my home directory. Git clones, SDK
 installations that come as clones (emsdk and the like) and any other fetched
-source trees go in `~/Documents/4_gitclones/<name>`. Keep a project's own build
+source trees go in `~/Documents/4_github/<name>`. Keep a project's own build
 artifacts inside the project, not in `$HOME`.
 
 ## Shell scripts
