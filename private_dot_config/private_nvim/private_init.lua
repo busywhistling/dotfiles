@@ -61,6 +61,7 @@ g.maplocalleader = " "
 -- disable netrw, nvim-tree takes over
 g.loaded_netrw = 1
 g.loaded_netrwPlugin = 1
+g.clipboard = "osc52"
 
 -- [[ Keymaps ]]
 
@@ -504,7 +505,7 @@ local servers = {
 		},
 	},
 	taplo = {},
-	-- ts_ls = {},
+	ts_ls = {},
 	lua_ls = {
 		settings = {
 			Lua = {
@@ -531,6 +532,7 @@ vim.lsp.enable({
 	"ruff",
 	"rust_analyzer",
 	"taplo",
+	"ts_ls",
 })
 
 -- Ensure the servers and tools above are installed.
@@ -911,6 +913,19 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 -- vim.lsp.enable("sourcekit")
 -- require("xcodebuild").setup()
 -- vim.api.nvim_set_keymap("n", "<leader>x", ":XcodebuildPicker<cr>", { silent = true, noremap = true })
+
+-- [[ Project-local config ]]
+-- Loads lua/projects/<git-root-name>.lua when nvim starts inside a project.
+-- Configs live in the dotfiles, so nothing runs from repositories.
+try(function()
+	local root = vim.fs.root(vim.fn.getcwd(), { ".git" }) or vim.fn.getcwd()
+	local name = vim.fs.basename(root):gsub("[^%w_]", "_") -- llama.cpp -> llama_cpp
+	local file = vim.fs.joinpath(vim.fn.stdpath("config"), "lua", "projects", name .. ".lua")
+	if vim.uv.fs_stat(file) then
+		require("projects." .. name)
+		vim.g.project = name
+	end
+end, "project")
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
