@@ -2,8 +2,10 @@
 # chezmoi wrapper that supplies this Mac's template data from 1Password.
 #
 # The data lives in the `chezmoi_macbook` 1Password Environment, one secret
-# per value. Each secret is named CHEZMOI_<PATH>, where PATH is the chezmoi
-# data path in UPPER_SNAKE_CASE (CHEZMOI_VPS_HOST -> .vps.host).
+# per value. Each secret is named CHEZMOI__<PATH>, where PATH is the chezmoi
+# data path with dots replaced by double underscores and case preserved
+# (CHEZMOI__vps__host -> .vps.host, CHEZMOI__op__items__aiPrimary ->
+# .op.items.aiPrimary).
 #
 # Reading 1Password needs the CLI and may need a Touch ID prompt, so the
 # mapped JSON is also cached in the login Keychain as a generic password.
@@ -62,9 +64,9 @@ function keychain_write -a account service keychain payload
   command security add-generic-password -a $account -s $service -X $hex -A $keychain 2>/dev/null
 end
 
-# CHEZMOI_<PATH> -> dotted data path. Keep in sync with the data section of
-# .chezmoi.toml.tmpl (the Mac no longer has one).
-set -l mapping '{"CHEZMOI_AI_COMMIT_MODEL":"ai.commitModel","CHEZMOI_AI_ENV_DOCS":"ai.env.docs","CHEZMOI_AI_ENV_PRIMARY":"ai.env.primary","CHEZMOI_AI_ENV_PROXY":"ai.env.proxy","CHEZMOI_AWS_ACCOUNT_ID":"aws.accountId","CHEZMOI_AWS_PROFILE":"aws.profile","CHEZMOI_AWS_SSO_INSTANCE":"aws.ssoInstance","CHEZMOI_EMAIL":"email","CHEZMOI_EXTERNAL_NPM_REGISTRY":"external.npmRegistry","CHEZMOI_EXTERNAL_NPM_SCOPE":"external.npmScope","CHEZMOI_EXTERNAL_OPENCODE_PLUGIN":"external.opencodePlugin","CHEZMOI_FULL_NAME":"fullName","CHEZMOI_LAN_DIETPI":"lan.dietpi","CHEZMOI_MAIL_SECONDARY_ADDRESS":"mail.secondary.address","CHEZMOI_MAIL_SECONDARY_NAME":"mail.secondary.name","CHEZMOI_MAIL_TERTIARY_ADDRESS":"mail.tertiary.address","CHEZMOI_MAIL_TERTIARY_NAME":"mail.tertiary.name","CHEZMOI_MEDIA_ARCHIVE_BUCKET":"media.archiveBucket","CHEZMOI_MEDIA_ARCHIVE_DIR":"media.archiveDir","CHEZMOI_MEDIA_LIBRARY_DIR":"media.libraryDir","CHEZMOI_MEDIA_PROJECT_DIR":"media.projectDir","CHEZMOI_MEDIA_REMOTE_DIR":"media.remoteDir","CHEZMOI_OP_AI_VAULT":"op.aiVault","CHEZMOI_OP_ITEMS_AI_PRIMARY":"op.items.aiPrimary","CHEZMOI_OP_ITEMS_AI_PROXY":"op.items.aiProxy","CHEZMOI_OP_ITEMS_BACKUP_ARCHIVE":"op.items.backupArchive","CHEZMOI_OP_ITEMS_BACKUP_ARCHIVE_RESTIC":"op.items.backupArchiveRestic","CHEZMOI_OP_ITEMS_BACKUP_PRIMARY":"op.items.backupPrimary","CHEZMOI_OP_ITEMS_BACKUP_PRIMARY_RESTIC":"op.items.backupPrimaryRestic","CHEZMOI_OP_ITEMS_CLOUD_ACCOUNT":"op.items.cloudAccount","CHEZMOI_OP_ITEMS_CLOUD_ACCOUNT_FAMILY":"op.items.cloudAccountFamily","CHEZMOI_OP_ITEMS_DOCS_SEARCH":"op.items.docsSearch","CHEZMOI_OP_ITEMS_MAIL_PRIMARY":"op.items.mailPrimary","CHEZMOI_OP_ITEMS_MAIL_SECONDARY":"op.items.mailSecondary","CHEZMOI_OP_ITEMS_MAIL_TERTIARY":"op.items.mailTertiary","CHEZMOI_SSH_SIGNING_KEY":"sshSigningKey","CHEZMOI_VM_IP":"vm.ip","CHEZMOI_VM_NAME":"vm.name","CHEZMOI_VPS_HOST":"vps.host","CHEZMOI_VPS_PORT":"vps.port","CHEZMOI_VPS_USER":"vps.user"}'
+# Secrets are matched by name; no mapping table is needed. A secret that is
+# missing from the environment is missing from the data, and chezmoi fails
+# loudly on the template that needs it.
 
 set -l cached (keychain_read $USER $service $keychain)
 set -l fetched 0
@@ -90,12 +92,12 @@ if test $refresh -eq 1
   shim_debug "refresh requested (cache age $age seconds)"
   set -l raw (command op environment secret list $environment --reveal --format=json 2>/dev/null)
   if test -n "$raw"
-    set -l fresh (printf '%s' $raw | command jq -c --argjson map "$mapping" '
+    set -l fresh (printf '%s' $raw | command jq -c '
       (if type == "array" then . else (.secrets // .items // .variables // []) end)
-      | map({key: (.name // .Name), value: (.value // .Value // "")})
-      | from_entries as $secrets
-      | reduce ($map | to_entries[]) as $entry ({};
-          setpath($entry.value | split("."); ($secrets[$entry.key] // "")))
+      | map({name: (.name // .Name), value: (.value // .Value // "")})
+      | map(select((.name // "") | startswith("CHEZMOI__")))
+      | map({path: (.name | ltrimstr("CHEZMOI__") | split("__")), value: .value})
+      | reduce .[] as $secret ({}; setpath($secret.path; $secret.value))
     ' 2>/dev/null)
     if test -n "$fresh"; and printf '%s' $fresh | command jq -e '.fullName != "" and .email != ""' >/dev/null 2>&1
       set -l payload (printf '%s' $fresh | command jq -c --argjson at $now '{fetchedAt: $at, data: .}')
