@@ -93,7 +93,7 @@ function maintain
     end
   end
 
-  if should_run $timestamp_dir brew 21600 "6 hours"
+  if command -q brew; and should_run $timestamp_dir brew 21600 "6 hours"
     brew cu -qacy; brew upgrade --no-ask
     # if command -sq agent-browser
     #   agent-browser upgrade
@@ -106,12 +106,34 @@ function maintain
   end
 
   if test (hostname) = macbook
-    # ssh dietpi "sudo apt update; sudo apt upgrade --yes"
     if should_run $timestamp_dir hetzner_maintain 21600 "6 hours"
       printf "\n#################################################################\n"
       echo "Maintaining hetzner"
-      ssh hetzner maintain
-      mark_run $timestamp_dir hetzner_maintain
+      ssh -o ConnectTimeout=5 -o BatchMode=yes hetzner maintain 2>&1 | tee $timestamp_dir/hetzner-last.log
+      set -l hetzner_status $pipestatus[1]
+      if test $hetzner_status -eq 0
+        mark_run $timestamp_dir hetzner_maintain
+      else
+        printf "warning: hetzner maintenance failed (status %s); will retry next run\n" $hetzner_status
+      end
+
+      # Hetzner runs containers, so only report a pending reboot here.
+      set -l hetzner_reboot 0
+      ssh -o ConnectTimeout=5 -o BatchMode=yes hetzner test -e /run/reboot-required; and set hetzner_reboot 1
+      ssh -o ConnectTimeout=5 -o BatchMode=yes hetzner 'test "$(ls -1 /lib/modules | sort -V | tail -1)" != "$(uname -r)"'; and set hetzner_reboot 1
+      test $hetzner_reboot -eq 1; and printf "hetzner: reboot recommended (kernel/firmware update pending)\n"
+    end
+
+    if should_run $timestamp_dir dietpi_maintain 86400 "24 hours"
+      printf "\n#################################################################\n"
+      echo "Maintaining dietpi"
+      maintain_dietpi 2>&1 | tee $timestamp_dir/dietpi-last.log
+      set -l dietpi_status $pipestatus[1]
+      if test $dietpi_status -eq 0
+        mark_run $timestamp_dir dietpi_maintain
+      else
+        printf "warning: dietpi maintenance failed (status %s); will retry next run\n" $dietpi_status
+      end
     end
   end
 
