@@ -58,8 +58,10 @@ function maintain_run_step -a cache spec index total
   else if test "$mode" = stream; or test "$__maintain_tty" = 0
     maintain_ui_head $index $total $name
     # tee first: the log keeps the step's own bytes, the screen gets them
-    # indented under the header.
-    $body 2>&1 | tee $log | maintain_ui_indent
+    # indented under the header. The indenter runs as a child process because
+    # a fish function used as a pipeline element buffers its own output until
+    # it exits; at the top level of a fresh fish it flushes line by line.
+    $body 2>&1 | tee $log | command fish --no-config -c "source '$__fish_config_dir/utils/maintain_ui.fish'; maintain_ui_indent"
     set code $pipestatus[1]
     chmod 600 $log 2>/dev/null
     maintain_ui_break $log
@@ -69,7 +71,7 @@ function maintain_run_step -a cache spec index total
     # otherwise outlive the run.
     rm -f $stop
     set -g __maintain_stop $stop
-    command fish -c "source '$__fish_config_dir/utils/maintain_ui.fish'; maintain_ui_spin '$name' '$index' '$total' '$stop'" &
+    command fish --no-config -c "source '$__fish_config_dir/utils/maintain_ui.fish'; maintain_ui_spin '$name' '$index' '$total' '$stop'" &
     set -l spinner $last_pid
     $body >$log 2>&1
     set code $status
