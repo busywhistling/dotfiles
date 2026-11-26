@@ -40,4 +40,49 @@ else
   printf 'pre-commit: taplo not in PATH; skipping the TOML check\n' >&2
 end
 
+# Every installed file must be private (mode 0600) unless there is a reason.
+#
+# chezmoi derives the target mode from the source filename: private_* entries
+# are created 0600, everything else keeps the default umask (0644). Scripts and
+# symlink definitions are never installed as regular files, and the repository
+# metadata below is excluded from $HOME in .chezmoiignore. Everything else must
+# carry the private_ attribute so that new world-readable dotfiles cannot slip
+# in unnoticed.
+set -l unprotected
+for entry in (git ls-files)
+  # Chezmoi special files, ignored paths and repository metadata start with a dot.
+  if string match -q '.*' -- $entry
+    continue
+  end
+
+  # Files excluded from $HOME in .chezmoiignore, not installed by chezmoi.
+  if contains -- $entry README.md LICENSE taplo.toml
+    continue
+  end
+
+  set -l base (path basename $entry)
+
+  # Executed from a temporary copy (run_), a script (modify_), or a
+  # declaration rather than an installed file (symlink_, remove_).
+  if string match -qr '^(run_|modify_|symlink_|remove_)' -- $base
+    continue
+  end
+
+  # chezmoi orders create_ and encrypted_ before private_.
+  set -l name (string replace -r '^create_' '' -- $base)
+  set name (string replace -r '^encrypted_' '' -- $name)
+
+  if not string match -q 'private_*' -- $name
+    set -a unprotected $entry
+  end
+end
+
+if test (count $unprotected) -gt 0
+  printf 'Commit blocked: these chezmoi entries would be installed non-private (0644):\n' >&2
+  printf '  %s\n' $unprotected >&2
+  printf 'Rename the source entry with the private_ attribute, e.g. `chezmoi chattr +private <target>`.\n' >&2
+  printf 'Only exempt an entry that must stay readable by other users, with a comment explaining why.\n' >&2
+  exit 1
+end
+
 exit 0
