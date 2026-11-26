@@ -183,6 +183,18 @@ function maintain
       test $hetzner_reboot -eq 1; and printf "hetzner: reboot recommended (kernel/firmware update pending)\n"
     end
 
+    # `brewdump` rewrites ~/.config/Brewfile-hetzner during the remote
+    # maintain. Fetch that copy so the chezmoi-tracked file can be committed
+    # and pulled back on the host (where it is applied as a no-op).
+    if should_run $timestamp_dir hetzner_brewfile 21600 "6 hours"
+      if scp -q -o ConnectTimeout=5 -o BatchMode=yes hetzner:~/.config/Brewfile-hetzner ~/.config/Brewfile-hetzner
+        chezmoi add ~/.config/Brewfile-hetzner
+        mark_run $timestamp_dir hetzner_brewfile
+      else
+        printf "warning: could not fetch the hetzner Brewfile; will retry next run\n"
+      end
+    end
+
     if should_run $timestamp_dir dietpi_maintain 86400 "24 hours"
       printf "\n#################################################################\n"
       echo "Maintaining dietpi"
