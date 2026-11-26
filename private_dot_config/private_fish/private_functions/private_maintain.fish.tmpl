@@ -184,12 +184,38 @@ function maintain
     end
 
     # `brewdump` rewrites ~/.config/Brewfile-hetzner on the server during the
-    # remote maintain, and the server owns that file. Fetch the result and
-    # re-add it so the tracked copy can be committed and pushed.
+    # remote maintain, and the server owns that file. Fetch the result, then
+    # commit and push the tracked copy so the server sees it on its next pull.
     if should_run $timestamp_dir hetzner_brewfile 21600 "6 hours"
       if scp -q -o ConnectTimeout=5 -o BatchMode=yes hetzner:~/.config/Brewfile-hetzner ~/.config/Brewfile-hetzner
+        set -l dotfiles ~/.config/chezmoi/sourceDir
+        set -l brewfile private_dot_config/private_Brewfile-hetzner
+        set -l synced 1
+
         chezmoi add ~/.config/Brewfile-hetzner
-        mark_run $timestamp_dir hetzner_brewfile
+        or set synced 0
+
+        if test $synced -eq 1
+          if not git -C $dotfiles diff --quiet -- $brewfile
+            git -C $dotfiles add $brewfile
+            and git -C $dotfiles commit -q -m "chore(brew): sync the hetzner Brewfile" -- $brewfile
+            or set synced 0
+          end
+        end
+
+        if test $synced -eq 1
+          if not git -C $dotfiles diff --quiet origin/main..HEAD -- $brewfile
+            env GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=5' \
+              git -C $dotfiles push -q origin HEAD:main
+            or set synced 0
+          end
+        end
+
+        if test $synced -eq 1
+          mark_run $timestamp_dir hetzner_brewfile
+        else
+          printf "warning: could not sync the hetzner Brewfile; will retry next run\n"
+        end
       else
         printf "warning: could not fetch the hetzner Brewfile; will retry next run\n"
       end
