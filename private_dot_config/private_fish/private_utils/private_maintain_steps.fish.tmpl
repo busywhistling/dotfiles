@@ -8,8 +8,10 @@
 
 function maintain_steps
 {{ if eq .chezmoi.hostname "macbook" }}
+  # No chezmoi_update here: this Mac is the only machine that commits to the
+  # source repo, so there is nothing to pull. Pulling would only use the SSH
+  # key at the start of every run, which asks 1Password for nothing.
   printf '%s\n' \
-    chezmoi_update'|'0'|'stream \
     timemachine_exclude'|'21600'|'stream \
     mbsync'|'21600 \
     rsync_pictures_to_ssd'|'21600'|'stream \
