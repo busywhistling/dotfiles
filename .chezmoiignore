@@ -76,6 +76,15 @@ Pictures
 
 .config/hometube
 
+# The CUPS default printer lives inside an otherwise-ignored application
+# directory. The directory has to be un-ignored for chezmoi to see the file,
+# then its contents are ignored again (same shape as .local/bin).
+{{ if eq .chezmoi.hostname "macbook" }}
+!.cups
+.cups/*
+!.cups/lpoptions
+{{ end }}
+
 {{ if ne .chezmoi.hostname "macbook" }}
 .config/karabiner
 .config/op
