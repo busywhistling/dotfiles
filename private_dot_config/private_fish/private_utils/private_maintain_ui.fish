@@ -40,7 +40,6 @@ end
 # A step that streams its output needs a header first; a quiet step's spinner
 # already showed the same line.
 function maintain_ui_head -a index total name
-  printf '  '
   maintain_ui_marker run
   if test "$__maintain_colour" = 1
     printf ' \e[90m[%s/%s]\e[0m \e[1m%s\e[0m\n' $index $total $name
@@ -51,7 +50,6 @@ end
 
 function maintain_ui_result -a kind name detail
   set -l padded (string pad -w 26 --right -- $name)
-  printf '  '
   maintain_ui_marker $kind
   if test "$__maintain_colour" = 1
     printf ' %s \e[90m%s\e[0m\n' $padded $detail
@@ -80,7 +78,7 @@ end
 # opening anything.
 function maintain_ui_tail -a log
   test -s $log; or return 0
-  tail -n 10 $log | string replace -r '^' '      '
+  tail -n 10 $log | string replace -r '^' '    '
 end
 
 # A step's output usually ends with a newline, but progress bars and prompts
@@ -106,9 +104,9 @@ function maintain_ui_spin -a name index total stop
     set -l frame $frames[(math "$i % 10 + 1")]
     set -l secs (math (date +%s) - $started)
     if test $colour -eq 1
-      printf '\r\e[2K  \e[36m%s\e[0m \e[90m[%s/%s]\e[0m \e[1m%s\e[0m \e[90m%s\e[0m' $frame $index $total $name (maintain_ui_short $secs)
+      printf '\r\e[2K\e[36m%s\e[0m \e[90m[%s/%s]\e[0m \e[1m%s\e[0m \e[90m%s\e[0m' $frame $index $total $name (maintain_ui_short $secs)
     else
-      printf '\r\e[2K  %s [%s/%s] %s %s' $frame $index $total $name (maintain_ui_short $secs)
+      printf '\r\e[2K%s [%s/%s] %s %s' $frame $index $total $name (maintain_ui_short $secs)
     end
     set i (math $i + 1)
     sleep 0.2
