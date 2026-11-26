@@ -1,284 +1,688 @@
-function maintain
-  set -l timestamp_dir ~/.cache/maintain
-  mkdir -p $timestamp_dir
+# Maintenance for one machine: update packages, sync, back up.
+#
+#   maintain               run every step whose interval has elapsed
+#   maintain status        when each step last ran and when it is due again
+#   maintain --plan        what the next run would execute
+#   maintain brew restic   run only those steps, now
+#   maintain --force       run every step, ignoring the schedule
+#   maintain --help
+#
+# A step that succeeds records its finish in ~/.cache/maintain/<step>.timestamp
+# and leaves its output in <step>.log, so a failed run can be read afterwards.
+# A step that returns $MAINTAIN_SKIPPED (42) had nothing to do this time: it is
+# not recorded, so the next run looks again.
 
-  function should_run -a timestamp_dir step_name time time_string
-    set -l timestamp_file $timestamp_dir/$step_name.timestamp
-    if test -f $timestamp_file
-      set -l last_run (cat $timestamp_file)
-      set -l six_hours_ago (math (date +%s) - $time)
-      if test "$last_run" -gt "$six_hours_ago"
-        printf "Skipping $step_name (last run < $time_string ago)\\n"
-        return 1
-      end
+set -g MAINTAIN_SKIPPED 42
+
+function maintain
+  set -l cache ~/.cache/maintain
+  mkdir -p $cache
+  chmod 700 $cache 2>/dev/null
+
+  # Colour is decided here, where stdout is the real terminal: the marker
+  # helpers run inside command substitutions and cannot test the tty.
+  set -g __maintain_colour 0
+  if not set -q NO_COLOR; and test -t 1
+    set -g __maintain_colour 1
+  end
+
+  # --- arguments ----------------------------------------------------------
+  set -l mode run
+  set -l only
+  set -l force 0
+  set -l args $argv
+  while set -q args[1]
+    switch $args[1]
+      case -h --help
+        __maintain_usage
+        return 0
+      case -s --status status
+        set mode status
+        set -e args[1]
+      case -p --plan --dry-run plan
+        set mode plan
+        set -e args[1]
+      case -o --only
+        set -e args[1]
+        if not set -q args[1]
+          printf 'maintain: --only needs a step name\n' >&2
+          return 2
+        end
+        set -a only (string split -n , -- $args[1])
+        set -e args[1]
+      case -f --force
+        set force 1
+        set -e args[1]
+      case '--*'
+        printf 'maintain: unknown option %s (see `maintain --help`)\n' $args[1] >&2
+        return 2
+      case '*'
+        set -a only $args[1]
+        set -e args[1]
     end
+  end
+
+  set -l steps (__maintain_steps)
+  set -l names
+  for spec in $steps
+    set -a names (string split -f 1 -- '|' $spec)
+  end
+  for name in $only
+    if not contains -- $name $names
+      printf 'maintain: unknown step %s\n' $name >&2
+      printf 'valid steps: %s\n' (string join ' ' $names) >&2
+      return 2
+    end
+  end
+
+  # --- what is due --------------------------------------------------------
+  set -l due
+  set -l waiting
+  set -l excluded
+  for spec in $steps
+    set -l name (string split -f 1 -- '|' $spec)
+    set -l interval (string split -f 2 -- '|' $spec)
+    if set -q only[1]
+      if contains -- $name $only
+        set -a due $spec
+      else
+        set -a excluded $spec
+      end
+    else if test $force -eq 1
+      set -a due $spec
+    else if __maintain_due $cache $name $interval
+      set -a due $spec
+    else
+      set -a waiting $spec
+    end
+  end
+
+  if test $mode = status
+    __maintain_report_status $cache
+    return 0
+  end
+  if test $mode = plan
+    __maintain_report_plan $cache
     return 0
   end
 
-  function mark_run -a timestamp_dir step_name
-    date +%s > "$timestamp_dir/$step_name.timestamp"
-  end
-
-  # Commit and push the given tracked dotfiles if any changed, or if a
-  # previous run's commit never made it to origin. Returns non-zero so
-  # callers can retry.
-  function commit_dotfiles -a message
-    set -l paths $argv[2..-1]
-    set -l dotfiles ~/.config/chezmoi/sourceDir
-    if not git -C $dotfiles diff --quiet -- $paths
-      git -C $dotfiles add $paths
-      and git -C $dotfiles commit -q -m $message -- $paths
-      or return 1
-    end
-    if not git -C $dotfiles diff --quiet origin/main..HEAD -- $paths
-      env GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=5' git -C $dotfiles push -q origin HEAD:main
-      or return 1
-    end
+  if not set -q due[1]
+    printf 'maintain: nothing is due; `maintain status` shows when each step runs next\n'
     return 0
   end
 
 {{ if eq .chezmoi.hostname "macbook" }}
   # 1Password's CLI authorization expires after ten idle minutes, but a single
-  # step in this script (rsync, restic) can run for hours. On the Mac, unlock
-  # 1Password once, up front, and read everything the run needs before the
-  # first long step starts:
+  # step here (rsync, restic) can run for hours. Unlock it once, up front,
+  # before the first long step, and read everything the run needs:
   #
-  #   - restic's credentials for both Backblaze buckets, read here instead of
-  #     hours later inside restic_backup_to_backblaze;
-  #   - everything the chezmoi wrapper needs: CHEZMOI_1P_TTL keeps it on its
-  #     Keychain cache for the whole run, so the `chezmoi add` calls below
-  #     cannot refresh the cache and prompt again either.
+  #   - restic's Backblaze credentials, instead of reading them at the end of
+  #     the run when the authorization is long gone;
+  #   - CHEZMOI_1P_TTL keeps the chezmoi wrapper on its Keychain cache for the
+  #     whole run, so the later `chezmoi add` calls cannot refresh it either.
   #
-  # CHEZMOI_1P_TTL is function-local and exported: only the commands in this
-  # run see it, and the next interactive chezmoi command refreshes normally.
-  if test (hostname) = macbook
-    printf "Unlocking 1Password once for the whole run\n"
+  # The variable is function-local and exported: only the commands in this run
+  # see it, and the next interactive chezmoi command refreshes normally.
+  set -lx CHEZMOI_1P_TTL 43200
+  if string match -q 'restic_backup_to_backblaze|*' -- $due
+    printf 'Unlocking 1Password once for the whole run\n'
     preload_backup_credentials
-    or printf "warning: could not read the backup credentials; restic will retry them itself\n"
-    set -lx CHEZMOI_1P_TTL 43200
+    or printf 'warning: could not read the backup credentials; restic will read them itself\n'
   end
 {{ end }}
-  chezmoi update
-{{ if eq .chezmoi.hostname "macbook" }}
-  if test (hostname) = macbook
-    if should_run $timestamp_dir timemachine_exclude 21600 "6 hours"
-      timemachine_exclude
-      mark_run $timestamp_dir timemachine_exclude
-    end
 
-    if should_run $timestamp_dir mbsync 21600 "6 hours"
-      mbsync -a -c ~/.config/mbsyncrc
-      mark_run $timestamp_dir mbsync
-    end
+  # --- run ----------------------------------------------------------------
+  set -l started (date +%s)
+  set -l total (count $due)
+  set -l index 0
+  set -l results
+  set -l failed
 
-    if test -d "/Volumes/MEDIA/Pictures"
-      if should_run $timestamp_dir rsync_pictures_to_ssd 21600 "6 hours"
-        rsync --archive --verbose --compress --progress --human-readable --delete --exclude='Photos Library.photoslibrary/' --exclude='Photo Booth-Mediathek/' ~/Pictures/ /Volumes/MEDIA/Pictures/
-        mark_run $timestamp_dir rsync_pictures_to_ssd
-      end
+  for spec in $due
+    set index (math $index + 1)
+    set -l name (string split -f 1 -- '|' $spec)
+    set -l step_started (date +%s)
+    __maintain_run $cache $spec $index $total
+    set -l code $status
+    set -a results "$name|$code|"(math (date +%s) - $step_started)
+    if test $code -ne 0; and test $code -ne $MAINTAIN_SKIPPED
+      set -a failed $name
+    end
+  end
+
+  __maintain_title 'maintain: done'
+
+  # --- summary ------------------------------------------------------------
+  set -l spent (math (date +%s) - $started)
+  set -l failed_count (count $failed)
+  set -l noun steps
+  test (count $results) -eq 1; and set noun step
+  set -l head 'maintain: '(__maintain_short $spent)' · '(count $results)' '$noun
+  if test $failed_count -gt 0
+    set head "$head · $failed_count failed"
+  else
+    set head "$head · all good"
+  end
+  printf '\n%s\n' $head
+
+  for result in $results
+    set -l name (string split -f 1 -- '|' $result)
+    set -l code (string split -f 2 -- '|' $result)
+    set -l secs (string split -f 3 -- '|' $result)
+    set -l padded (string pad -w 28 --right -- $name)
+    if test "$code" -eq 0
+      printf '  %s %s %s\n' (__maintain_marker ok) $padded (__maintain_short $secs)
+    else if test "$code" -eq $MAINTAIN_SKIPPED
+      printf '  %s %s %s\n' (__maintain_marker skip) $padded 'nothing to do'
     else
-      printf "Skipping rsync icloud-backups to external drive as it is not available...\n"
-    end
-
-    if test -d "{{ .media.libraryDir }}"
-      if should_run $timestamp_dir sync_media 21600 "6 hours"
-        sync_media_library
-        mark_run $timestamp_dir sync_media
-      end
-    else
-      printf "Skipping media library sync as external drive is not available...\n"
-    end
-
-    if should_run $timestamp_dir restic_backup_to_backblaze 21600 "6 hours"
-      restic_backup_to_backblaze
-      mark_run $timestamp_dir restic_backup_to_backblaze
-    end
-
-    if should_run $timestamp_dir sync_repos 21600 "6 hours"
-      sync_repos
-      mark_run $timestamp_dir sync_repos
-    end
-
-    if should_run $timestamp_dir mole 2629800 "1 month"
-      printf "\n#################################################################\n"
-      echo "Deep cleaning system"
-      mo clean
-      mark_run $timestamp_dir mole
-    end
-  end
-{{ end }}
-  if is_ubuntu
-    sudo apt update; sudo apt upgrade --yes
-  end
-
-  if test (hostname) = hetzner
-    if should_run $timestamp_dir podman_maintain 21600 "6 hours"
-      podman auto-update
-
-      # `auto-update` restarts the pod, and pruning while the old containers
-      # are still unwinding fails with transient storage errors. Wait (max
-      # 60 s) until podman answers and nothing is mid-transition, then let the
-      # store settle.
-      for attempt in (seq 1 30)
-        set -l transitional 0
-        for state in (podman ps -a --format '{{"{{"}}.State{{"}}"}}' 2>/dev/null)
-          if string match -qr '^(created|configured|initialized|stopping)$' -- $state
-            set transitional 1
-          end
-        end
-        test $transitional -eq 0; and podman info >/dev/null 2>&1; and break
-        sleep 2
-      end
-      sleep 5
-
-      # Leftover buildah build containers and storage-only containers pin base
-      # images and layers, so `image prune` cannot free them.
-      podman system prune --build -f
-      podman system prune --external -f
-
-      # `--force` keeps this unattended. `system prune --all` would also delete
-      # the `:previous` rollback tags, so remove the remaining unused images
-      # ourselves and skip them. Retry in case a prune races the restart above.
-      set -l kept_tags localhost/hometube-server:previous localhost/hometube-client:previous
-      set -l cleaned 0
-      for attempt in 1 2 3
-        set -l failed 0
-
-        podman system prune --volumes --force
-        or set failed 1
-
-        set -l protected (podman image inspect --format '{{"{{"}}.Id{{"}}"}}' $kept_tags 2>/dev/null | string replace -r '^sha256:' '')
-        set -l in_use (podman ps -a --no-trunc --format '{{"{{"}}.ImageID{{"}}"}}' 2>/dev/null | string replace -r '^sha256:' '')
-        for id in (podman images --no-trunc --format '{{"{{"}}.ID{{"}}"}}' 2>/dev/null | sort -u)
-          set -l image (string replace -r '^sha256:' '' -- $id)
-          if contains -- $image $protected $in_use
-            continue
-          end
-          podman rmi --force $image
-          or set failed 1
-        end
-
-        if test $failed -eq 0
-          set cleaned 1
-          break
-        end
-        printf "podman image cleanup failed (attempt %s/3); retrying\n" $attempt
-        test $attempt -lt 3; and sleep (math "10 * $attempt")
-      end
-
-      # Orphaned layers are invisible to `system df` and `image prune`.
-      # Report only: `check --repair` would delete in-use images (the
-      # opentodo /etc mtime warnings are benign).
-      set -l orphaned_layers (podman system check 2>&1 | grep -c "not referenced by any images or containers")
-      if test $orphaned_layers -gt 0
-        printf "warning: %s orphaned podman layers — inspect with podman system check\n" $orphaned_layers
-      end
-
-      if test $cleaned -eq 0
-        printf "warning: podman storage cleanup failed; will retry next maintain\n"
-      else
-        mark_run $timestamp_dir podman_maintain
-      end
+      printf '  %s %s %s\n' (__maintain_marker fail) $padded (__maintain_short $secs)" · ~/.cache/maintain/$name.log"
     end
   end
 
-  if command -q brew; and should_run $timestamp_dir brew 21600 "6 hours"
-    brew cu -qacy; brew upgrade --no-ask
-    # if command -sq agent-browser
-    #   agent-browser upgrade
-    # end
-    printf "\nBacking up brew bundle to ~/.config/Brewfile-$hostname\n"
-    brewdump
-{{ if eq .chezmoi.hostname "macbook" }}
-    # Stage the fresh dump; the single Brewfile commit further down covers it.
-    chezmoi add ~/.config/Brewfile-macbook
-    or printf "warning: could not stage the macbook Brewfile; will retry next run\n"
-{{ end }}
-    brew autoremove
-    brew cleanup --prune=all
-    mark_run $timestamp_dir brew
+  set -l waiting_names
+  for spec in $waiting
+    set -a waiting_names (string split -f 1 -- '|' $spec)
   end
-{{ if eq .chezmoi.hostname "macbook" }}
-  if should_run $timestamp_dir update_neovim_plugins 21600 "6 hours"
-    if nvim --headless "+lua vim.pack.update(nil, { force = true })" +qa
-      chezmoi add ~/.config/nvim/nvim-pack-lock.json
-      mark_run $timestamp_dir update_neovim_plugins
-    end
+  set -l excluded_names
+  for spec in $excluded
+    set -a excluded_names (string split -f 1 -- '|' $spec)
   end
-{{ end }}{{ if eq .chezmoi.hostname "macbook" }}
-  if test (hostname) = macbook
-    if should_run $timestamp_dir hetzner_maintain 21600 "6 hours"
-      printf "\n#################################################################\n"
-      echo "Maintaining hetzner"
-      ssh -o ConnectTimeout=5 -o BatchMode=yes hetzner maintain 2>&1 | tee $timestamp_dir/hetzner-last.log
-      set -l hetzner_status $pipestatus[1]
-      if test $hetzner_status -eq 0
-        mark_run $timestamp_dir hetzner_maintain
-      else
-        printf "warning: hetzner maintenance failed (status %s); will retry next run\n" $hetzner_status
-      end
-
-      # Hetzner runs containers, so only report a pending reboot here.
-      set -l hetzner_reboot 0
-      ssh -o ConnectTimeout=5 -o BatchMode=yes hetzner test -e /run/reboot-required; and set hetzner_reboot 1
-      ssh -o ConnectTimeout=5 -o BatchMode=yes hetzner 'test "$(ls -1 /lib/modules | sort -V | tail -1)" != "$(uname -r)"'; and set hetzner_reboot 1
-      test $hetzner_reboot -eq 1; and printf "hetzner: reboot recommended (kernel/firmware update pending)\n"
-    end
-
-    # `brewdump` rewrites ~/.config/Brewfile-hetzner on the server during the
-    # remote maintain, and the server owns that file. Fetch the result; the
-    # single Brewfile commit below covers it.
-    if should_run $timestamp_dir hetzner_brewfile 21600 "6 hours"
-      if scp -q -o ConnectTimeout=5 -o BatchMode=yes hetzner:~/.config/Brewfile-hetzner ~/.config/Brewfile-hetzner
-        chezmoi add ~/.config/Brewfile-hetzner
-        and mark_run $timestamp_dir hetzner_brewfile
-        or printf "warning: could not stage the hetzner Brewfile; will retry next run\n"
-      else
-        printf "warning: could not fetch the hetzner Brewfile; will retry next run\n"
-      end
-    end
-
-    # One commit for both files: the Mac's own dump and the fetched copy.
-    commit_dotfiles "chore(brew): sync the Brewfiles" \
-      private_dot_config/private_Brewfile-macbook \
-      private_dot_config/private_Brewfile-hetzner
-    or printf "warning: could not commit the Brewfiles; will retry next run\n"
-
-    if should_run $timestamp_dir dietpi_maintain 86400 "24 hours"
-      printf "\n#################################################################\n"
-      echo "Maintaining dietpi"
-      maintain_dietpi 2>&1 | tee $timestamp_dir/dietpi-last.log
-      set -l dietpi_status $pipestatus[1]
-      if test $dietpi_status -eq 0
-        mark_run $timestamp_dir dietpi_maintain
-      else
-        printf "warning: dietpi maintenance failed (status %s); will retry next run\n" $dietpi_status
-      end
-    end
-
-    if not test -f ~/Documents/vps_backups/(date +%F)/hometube.db
-      printf "\n#################################################################\n"
-      echo "Backing up hometube"
-      backup_hometube 2>&1 | tee $timestamp_dir/hometube-backup-last.log
-      set -l hometube_status $pipestatus[1]
-      if test $hometube_status -ne 0
-        printf "warning: hometube backup failed (status %s); will retry next run\n" $hometube_status
-      end
-    end
+  if set -q excluded_names[1]
+    printf '  %s not selected: %s\n' (__maintain_marker skip) (string join ' ' $excluded_names)
+  else if set -q waiting_names[1]
+    printf '  %s not due: %s\n' (__maintain_marker skip) (string join ' ' $waiting_names)
   end
-{{ end }}
-  if test (hostname) = hetzner
-    if should_run $timestamp_dir hermes_update 21600 "6 hours"
-      hermes update --yes
-      mark_run $timestamp_dir hermes_update
-    end
+
+  # A long run, or any failure, is worth a notification: the terminal is
+  # usually not in sight by then.
+  if test $spent -ge 300; or test $failed_count -gt 0
+    __maintain_notify $head
   end
-{{ if eq .chezmoi.hostname "macbook" }}
-  # if should_run $timestamp_dir icloud_sync 21600 "6 hours"
-  #   icloud-sync --mfa-sms -u (op read "op://Private/{{ .op.items.cloudAccount }}/username") -p (op read "op://Private/{{ .op.items.cloudAccount }}/password") -d ~/Pictures/.icloud-backups/paramjit
-  #   icloud-sync --mfa-sms -u (op read "op://Private/{{ .op.items.cloudAccountFamily }}/username") -p (op read "op://Private/{{ .op.items.cloudAccountFamily }}/password") -d ~/Pictures/.icloud-backups/{{ .mail.tertiary.name }}
-  #   mark_run $timestamp_dir icloud_sync
-  # end
-{{ end }}
-  functions -e should_run mark_run commit_dotfiles
+
+  test $failed_count -eq 0
 end
+
+function __maintain_usage
+  printf '%s\n' \
+    'Usage: maintain [--force] [--only STEP[,STEP]] [STEP...]' \
+    '       maintain status' \
+    '       maintain --plan' \
+    '' \
+    'Run the maintenance steps whose interval has elapsed, one at a time, and' \
+    'print a summary. Timestamps and per-step logs live in ~/.cache/maintain; a' \
+    'step that fails is not recorded, so the next run retries it.' \
+    '' \
+    '  (no arguments)      run every step that is due' \
+    '  STEP...             run only the named steps, ignoring the schedule' \
+    '  -o, --only LIST     the same, comma-separated' \
+    '  -f, --force         run every step, ignoring the schedule' \
+    '  -s, --status        when each step last ran and when it is due again' \
+    '  -p, --plan          what the next run would execute' \
+    '  -h, --help' \
+    '' \
+    'Environment:' \
+    '  NO_COLOR=1          no colour in the summary' \
+    '  MAINTAIN_NOTIFY=0   no desktop notification when a run finishes'
+end
+
+# --- the step list -------------------------------------------------------
+#
+# name|interval. An interval of 0 means "every run" and records no timestamp.
+# Order matters: everything that produces work to back up runs before restic,
+# so the snapshot contains the same day's repos, commits and database copy.
+
+function __maintain_steps
+{{ if eq .chezmoi.hostname "macbook" }}
+  printf '%s\n' \
+    chezmoi_update'|'0 \
+    timemachine_exclude'|'21600 \
+    mbsync'|'21600 \
+    rsync_pictures_to_ssd'|'21600 \
+    sync_media'|'21600 \
+    brew'|'21600 \
+    update_neovim_plugins'|'21600 \
+    sync_repos'|'21600 \
+    mole'|'2629800'|'tty \
+    hetzner_maintain'|'21600 \
+    hetzner_brewfile'|'21600 \
+    dietpi_maintain'|'86400 \
+    hometube_backup'|'0 \
+    dotfiles_commit'|'0 \
+    restic_backup_to_backblaze'|'21600
+{{ else }}
+  printf '%s\n' \
+    chezmoi_update'|'0 \
+    apt_upgrade'|'0 \
+    podman_maintain'|'21600 \
+    brew'|'21600 \
+    hermes_update'|'21600
+{{ end }}
+end
+
+# --- step runner ---------------------------------------------------------
+
+# Run one step of the spec list: print a header, keep the output in the log,
+# record the time on success.
+function __maintain_run -a cache spec index total
+  set -l name (string split -f 1 -- '|' $spec)
+  set -l interval (string split -f 2 -- '|' $spec)
+  set -l mode (string split -f 3 -- '|' $spec)
+  set -l body __maintain_step_$name
+  set -l log $cache/$name.log
+
+  if not functions -q $body
+    printf '\n%s [%s/%s] %s\n' (__maintain_marker run) $index $total $name
+    printf 'warning: %s has no implementation\n' $name
+    return 1
+  end
+
+  printf '\n%s [%s/%s] %s\n' (__maintain_marker run) $index $total $name
+  __maintain_title "maintain: $name ($index/$total)"
+
+  set -l code 0
+  if test "$mode" = tty
+    # Interactive tools (mole) need the real terminal, not a pipe.
+    $body
+    set code $status
+  else
+    $body 2>&1 | tee $log
+    set code $pipestatus[1]
+    chmod 600 $log 2>/dev/null
+  end
+
+  if test $code -eq 0; and test "$interval" -ne 0
+    date +%s > $cache/$name.timestamp
+  end
+  return $code
+end
+
+# --- schedule ------------------------------------------------------------
+
+# Print the epoch of the last successful run, or nothing if it never ran.
+function __maintain_last_run -a cache name
+  set -l file $cache/$name.timestamp
+  test -f $file; or return 1
+  set -l raw (string trim < $file 2>/dev/null)
+  string match -qr '^\d+$' -- $raw; or return 1
+  printf '%s' $raw
+end
+
+function __maintain_due -a cache name interval
+  test "$interval" -eq 0; and return 0
+  set -l last (__maintain_last_run $cache $name)
+  if test -z "$last"
+    return 0
+  end
+  test (math (date +%s) - $last) -ge $interval
+end
+
+# --- reporting -----------------------------------------------------------
+
+function __maintain_report_status -a cache
+  set -l now (date +%s)
+  printf '%s %s %s\n' \
+    (string pad -w 30 --right -- 'step') \
+    (string pad -w 12 --right -- 'last run') \
+    'next run'
+  for spec in (__maintain_steps)
+    set -l name (string split -f 1 -- '|' $spec)
+    set -l interval (string split -f 2 -- '|' $spec)
+    set -l last (__maintain_last_run $cache $name)
+    set -l when '-'
+    set -l next 'every run'
+    if test "$interval" -ne 0
+      if test -n "$last"
+        set -l age (math $now - $last)
+        set when (__maintain_short $age)' ago'
+        if test $age -ge $interval
+          set next now
+        else
+          set next 'in '(__maintain_short (math $interval - $age))
+        end
+      else
+        set when never
+        set next now
+      end
+    end
+    set -l mark ' '
+    if test $next = now
+      set mark '*'
+    end
+    printf '%s %s %s %s\n' $mark \
+      (string pad -w 30 --right -- $name) \
+      (string pad -w 12 --right -- $when) \
+      $next
+  end
+end
+
+function __maintain_report_plan -a cache
+  set -l due
+  set -l idle
+  for spec in (__maintain_steps)
+    set -l name (string split -f 1 -- '|' $spec)
+    set -l interval (string split -f 2 -- '|' $spec)
+    if __maintain_due $cache $name $interval
+      set -a due $name
+    else
+      set -a idle $name
+    end
+  end
+  if set -q due[1]
+    printf 'due (%s): %s\n' (count $due) (string join ' ' $due)
+  else
+    printf 'nothing is due\n'
+  end
+  if set -q idle[1]
+    printf 'not due (%s): %s\n' (count $idle) (string join ' ' $idle)
+  end
+end
+
+# --- presentation --------------------------------------------------------
+
+function __maintain_color
+  test "$__maintain_colour" = 1
+end
+
+function __maintain_marker -a kind
+  set -l glyph '▸'
+  set -l code 34
+  switch $kind
+    case ok
+      set glyph '✓'
+      set code 32
+    case fail
+      set glyph '✗'
+      set code 31
+    case skip
+      set glyph '↷'
+      set code 90
+  end
+  if __maintain_color
+    printf '\e[%sm%s\e[0m' $code $glyph
+  else
+    printf '%s' $glyph
+  end
+end
+
+# A window title is the only progress indicator left once the terminal is
+# scrolled away or the tab is in the background.
+function __maintain_title -a text
+  test -t 1; or return 0
+  printf '\e]0;%s\e\\' $text
+end
+
+function __maintain_notify -a summary
+  set -q MAINTAIN_NOTIFY; and test "$MAINTAIN_NOTIFY" = 0; and return 0
+  test -t 1; or return 0
+  # OSC 9 asks the terminal itself to raise the notification, so it is
+  # attributed to the terminal and a click only brings the window forward.
+  # `osascript -e 'display notification'` posts as Script Editor instead, and
+  # clicking that notification launches Script Editor.
+  printf '\e]9;%s\a' $summary
+end
+
+function __maintain_short -a seconds
+  set -l s (math "floor($seconds)")
+  if test $s -lt 60
+    printf '%ss' $s
+  else if test $s -lt 3600
+    printf '%sm' (math "floor($s / 60)")
+  else if test $s -lt 86400
+    set -l h (math "floor($s / 3600)")
+    set -l m (math "floor(($s % 3600) / 60)")
+    if test $m -eq 0
+      printf '%sh' $h
+    else
+      printf '%sh%02dm' $h $m
+    end
+  else
+    set -l d (math "floor($s / 86400)")
+    set -l h (math "floor(($s % 86400) / 3600)")
+    if test $h -eq 0
+      printf '%sd' $d
+    else
+      printf '%sd%02dh' $d $h
+    end
+  end
+end
+
+# --- shared step body ----------------------------------------------------
+
+# Commit and push the given tracked dotfiles if any changed, or if a previous
+# run's commit never made it to origin.
+function __maintain_commit_dotfiles -a message
+  set -l paths $argv[2..-1]
+  set -l dotfiles ~/.config/chezmoi/sourceDir
+  if not git -C $dotfiles diff --quiet -- $paths
+    git -C $dotfiles add $paths
+    and git -C $dotfiles commit -q -m $message -- $paths
+    or return 1
+  end
+  if not git -C $dotfiles diff --quiet origin/main..HEAD -- $paths
+    env GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=5' git -C $dotfiles push -q origin HEAD:main
+    or return 1
+  end
+  return 0
+end
+
+function __maintain_step_chezmoi_update
+  chezmoi update
+end
+
+function __maintain_step_brew
+  if not command -q brew
+    return $MAINTAIN_SKIPPED
+  end
+  brew cu -qacy
+  or return 1
+  brew upgrade --no-ask
+  or return 1
+
+  printf '\nBacking up the brew bundle\n'
+  brewdump
+  or return 1
+{{ if eq .chezmoi.hostname "macbook" }}
+  # Stage the fresh dump; the dotfiles_commit step further down covers it.
+  chezmoi add ~/.config/Brewfile-macbook
+  or return 1
+{{ end }}
+  brew autoremove
+  or return 1
+  brew cleanup --prune=all
+end
+
+{{ if eq .chezmoi.hostname "macbook" }}
+function __maintain_step_timemachine_exclude
+  timemachine_exclude
+end
+
+function __maintain_step_mbsync
+  mbsync -a -c ~/.config/mbsyncrc
+end
+
+function __maintain_step_rsync_pictures_to_ssd
+  if not test -d /Volumes/MEDIA/Pictures
+    printf 'external drive not mounted\n'
+    return $MAINTAIN_SKIPPED
+  end
+  rsync --archive --compress --progress --human-readable --delete \
+    --exclude='Photos Library.photoslibrary/' \
+    --exclude='Photo Booth-Mediathek/' \
+    ~/Pictures/ /Volumes/MEDIA/Pictures/
+end
+
+function __maintain_step_sync_media
+  if not test -d "{{ .media.libraryDir }}"
+    printf 'external drive not mounted\n'
+    return $MAINTAIN_SKIPPED
+  end
+  sync_media_library
+end
+
+function __maintain_step_update_neovim_plugins
+  nvim --headless "+lua vim.pack.update(nil, { force = true })" +qa
+  or return 1
+  chezmoi add ~/.config/nvim/nvim-pack-lock.json
+end
+
+function __maintain_step_sync_repos
+  sync_repos
+end
+
+function __maintain_step_mole
+  if not command -q mo
+    return $MAINTAIN_SKIPPED
+  end
+  printf 'Deep cleaning the system\n'
+  mo clean
+end
+
+function __maintain_step_hetzner_maintain
+  printf 'Maintaining hetzner\n'
+  ssh -o ConnectTimeout=5 -o BatchMode=yes hetzner maintain
+  set -l code $status
+  if test $code -ne 0
+    printf 'warning: hetzner maintenance failed (status %s)\n' $code
+  end
+
+  # Hetzner runs containers, so only report a pending reboot here.
+  set -l reboot 0
+  ssh -o ConnectTimeout=5 -o BatchMode=yes hetzner test -e /run/reboot-required; and set reboot 1
+  ssh -o ConnectTimeout=5 -o BatchMode=yes hetzner 'test "$(ls -1 /lib/modules | sort -V | tail -1)" != "$(uname -r)"'; and set reboot 1
+  test $reboot -eq 1; and printf 'hetzner: reboot recommended (kernel/firmware update pending)\n'
+
+  return $code
+end
+
+function __maintain_step_hetzner_brewfile
+  printf 'Fetching the hetzner Brewfile\n'
+  if not scp -q -o ConnectTimeout=5 -o BatchMode=yes hetzner:~/.config/Brewfile-hetzner ~/.config/Brewfile-hetzner
+    printf 'could not fetch the hetzner Brewfile\n'
+    return 1
+  end
+  chezmoi add ~/.config/Brewfile-hetzner
+end
+
+function __maintain_step_dietpi_maintain
+  printf 'Maintaining dietpi\n'
+  if not maintain_dietpi
+    printf 'warning: dietpi maintenance failed\n'
+    return 1
+  end
+end
+
+function __maintain_step_hometube_backup
+  if test -f ~/Documents/vps_backups/(date +%F)/hometube.db
+    return $MAINTAIN_SKIPPED
+  end
+  printf "Backing up today's HomeTube database\n"
+  if not backup_hometube
+    printf 'warning: hometube backup failed\n'
+    return 1
+  end
+end
+
+function __maintain_step_dotfiles_commit
+  set -l dotfiles ~/.config/chezmoi/sourceDir
+  set -l paths private_dot_config/private_Brewfile-macbook private_dot_config/private_Brewfile-hetzner
+  if git -C $dotfiles diff --quiet -- $paths; and git -C $dotfiles diff --quiet origin/main..HEAD -- $paths
+    return $MAINTAIN_SKIPPED
+  end
+  __maintain_commit_dotfiles 'chore(brew): sync the Brewfiles' $paths
+end
+
+function __maintain_step_restic_backup_to_backblaze
+  restic_backup_to_backblaze
+end
+{{ else }}
+function __maintain_step_apt_upgrade
+  if not is_ubuntu
+    return $MAINTAIN_SKIPPED
+  end
+  sudo apt update
+  and sudo apt upgrade --yes
+end
+
+function __maintain_step_podman_maintain
+  podman auto-update
+  or return 1
+
+  # `auto-update` restarts the pod, and pruning while the old containers are
+  # still unwinding fails with transient storage errors. Wait (max 60 s) until
+  # podman answers and nothing is mid-transition, then let the store settle.
+  for attempt in (seq 1 30)
+    set -l transitional 0
+    for state in (podman ps -a --format '{{"{{"}}.State{{"}}"}}' 2>/dev/null)
+      if string match -qr '^(created|configured|initialized|stopping)$' -- $state
+        set transitional 1
+      end
+    end
+    test $transitional -eq 0; and podman info >/dev/null 2>&1; and break
+    sleep 2
+  end
+  sleep 5
+
+  # Leftover buildah build containers and storage-only containers pin base
+  # images and layers, so `image prune` cannot free them.
+  podman system prune --build -f
+  podman system prune --external -f
+
+  # `--force` keeps this unattended. `system prune --all` would also delete the
+  # `:previous` rollback tags, so remove the remaining unused images ourselves
+  # and skip them. Retry in case a prune races the restart above.
+  set -l kept_tags localhost/hometube-server:previous localhost/hometube-client:previous
+  set -l cleaned 0
+  for attempt in 1 2 3
+    set -l failed 0
+
+    podman system prune --volumes --force
+    or set failed 1
+
+    set -l protected (podman image inspect --format '{{"{{"}}.Id{{"}}"}}' $kept_tags 2>/dev/null | string replace -r '^sha256:' '')
+    set -l in_use (podman ps -a --no-trunc --format '{{"{{"}}.ImageID{{"}}"}}' 2>/dev/null | string replace -r '^sha256:' '')
+    for id in (podman images --no-trunc --format '{{"{{"}}.ID{{"}}"}}' 2>/dev/null | sort -u)
+      set -l image (string replace -r '^sha256:' '' -- $id)
+      if contains -- $image $protected $in_use
+        continue
+      end
+      podman rmi --force $image
+      or set failed 1
+    end
+
+    if test $failed -eq 0
+      set cleaned 1
+      break
+    end
+    printf 'podman image cleanup failed (attempt %s/3); retrying\n' $attempt
+    test $attempt -lt 3; and sleep (math "10 * $attempt")
+  end
+
+  # Orphaned layers are invisible to `system df` and `image prune`.
+  # Report only: `check --repair` would delete in-use images (the
+  # opentodo /etc mtime warnings are benign).
+  set -l orphaned_layers (podman system check 2>&1 | grep -c 'not referenced by any images or containers')
+  if test $orphaned_layers -gt 0
+    printf 'warning: %s orphaned podman layers — inspect with podman system check\n' $orphaned_layers
+  end
+
+  if test $cleaned -eq 0
+    printf 'warning: podman storage cleanup failed\n'
+    return 1
+  end
+  return 0
+end
+
+function __maintain_step_hermes_update
+  if not command -q hermes
+    return $MAINTAIN_SKIPPED
+  end
+  hermes update --yes
+end
+{{ end }}
+
+{{ if eq .chezmoi.hostname "macbook" }}
+# Not scheduled: iCloud photo sync needs a one-time SMS code, so it stays a
+# manual step:
+#   icloud-sync --mfa-sms -u (op read "op://Private/{{ .op.items.cloudAccount }}/username") -p (op read "op://Private/{{ .op.items.cloudAccount }}/password") -d ~/Pictures/.icloud-backups/paramjit
+#   icloud-sync --mfa-sms -u (op read "op://Private/{{ .op.items.cloudAccountFamily }}/username") -p (op read "op://Private/{{ .op.items.cloudAccountFamily }}/password") -d ~/Pictures/.icloud-backups/{{ .mail.tertiary.name }}
+{{ end }}
