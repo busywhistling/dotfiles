@@ -89,6 +89,7 @@ Pictures
 .config/restic
 .local/bin/push-screenshots
 .config/fish/functions/maintain_dietpi.fish
+.config/fish/functions/backup_hometube.fish
 .config/fish/functions/ubuntu_vm.fish
 .config/fish/functions/feeds.fish
 .config/fish/functions/bare_opencode.fish

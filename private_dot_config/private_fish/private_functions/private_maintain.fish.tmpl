@@ -142,6 +142,16 @@ function maintain
         printf "warning: dietpi maintenance failed (status %s); will retry next run\n" $dietpi_status
       end
     end
+
+    if not test -f ~/Documents/vps_backups/(date +%F)/hometube.db
+      printf "\n#################################################################\n"
+      echo "Backing up hometube"
+      backup_hometube 2>&1 | tee $timestamp_dir/hometube-backup-last.log
+      set -l hometube_status $pipestatus[1]
+      if test $hometube_status -ne 0
+        printf "warning: hometube backup failed (status %s); will retry next run\n" $hometube_status
+      end
+    end
   end
 {{ end }}
   if test (hostname) = hetzner
