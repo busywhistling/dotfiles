@@ -20,7 +20,7 @@ function maintain
   end
 
   chezmoi update
-
+{{ if eq .chezmoi.hostname "macbook" }}
   if test (hostname) = macbook
     if should_run $timestamp_dir timemachine_exclude 21600 "6 hours"
       timemachine_exclude
@@ -69,7 +69,7 @@ function maintain
       mark_run $timestamp_dir mole
     end
   end
-
+{{ end }}
   if is_ubuntu
     sudo apt update; sudo apt upgrade --yes
   end
@@ -104,7 +104,14 @@ function maintain
     brew cleanup --prune=all
     mark_run $timestamp_dir brew
   end
-
+{{ if eq .chezmoi.hostname "macbook" }}
+  if should_run $timestamp_dir update_neovim_plugins 21600 "6 hours"
+    if nvim --headless "+lua vim.pack.update(nil, { force = true })" +qa
+      chezmoi add ~/.config/nvim/nvim-pack-lock.json
+      mark_run $timestamp_dir update_neovim_plugins
+    end
+  end
+{{ end }}{{ if eq .chezmoi.hostname "macbook" }}
   if test (hostname) = macbook
     if should_run $timestamp_dir hetzner_maintain 21600 "6 hours"
       printf "\n#################################################################\n"
@@ -136,18 +143,19 @@ function maintain
       end
     end
   end
-
+{{ end }}
   if test (hostname) = hetzner
     if should_run $timestamp_dir hermes_update 21600 "6 hours"
       hermes update --yes
       mark_run $timestamp_dir hermes_update
     end
   end
-
+{{ if eq .chezmoi.hostname "macbook" }}
   # if should_run $timestamp_dir icloud_sync 21600 "6 hours"
   #   icloud-sync --mfa-sms -u (op read "op://Private/{{ .op.items.cloudAccount }}/username") -p (op read "op://Private/{{ .op.items.cloudAccount }}/password") -d ~/Pictures/.icloud-backups/paramjit
   #   icloud-sync --mfa-sms -u (op read "op://Private/{{ .op.items.cloudAccountFamily }}/username") -p (op read "op://Private/{{ .op.items.cloudAccountFamily }}/password") -d ~/Pictures/.icloud-backups/{{ .mail.tertiary.name }}
   #   mark_run $timestamp_dir icloud_sync
   # end
+{{ end }}
   functions -e should_run mark_run
 end

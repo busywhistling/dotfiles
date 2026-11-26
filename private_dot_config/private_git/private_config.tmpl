@@ -6,8 +6,10 @@
   useConfigOnly = true
   name = {{ .fullName | default "Your Name" }}
   email = {{ .email | default "you@example.com" }}
+{{- if eq .chezmoi.hostname "macbook" }}
 {{- if .sshSigningKey }}
 	signingkey = {{ .sshSigningKey }}
+{{- end }}
 {{- end }}
 
 [log]
@@ -16,8 +18,13 @@
   ignorecase = false
 	pager = delta
   # pager = hunk pager
+{{- if eq .chezmoi.hostname "hetzner" }}
+	sshCommand = ssh -i ~/.ssh/id_hetzner -o IdentitiesOnly=yes
+{{- end }}
+{{- if eq .chezmoi.hostname "macbook" }}
 [credential]
   helper = osxkeychain
+{{- end }}
 [push]
   autoSetupRemote = true
 [pull]
@@ -29,15 +36,19 @@
   required = true
   clean = git-lfs clean -- %f
   smudge = git-lfs smudge -- %f
+{{- if eq .chezmoi.hostname "macbook" }}
 [gpg]
   format = ssh
 [gpg "ssh"]
   allowedSignersFile = ~/.config/git/allowed_signers
 	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+{{- end }}
 [format]
   signoff = true
+{{- if eq .chezmoi.hostname "macbook" }}
 [commit]
   gpgsign = true
+{{- end }}
 # [tag]
 #   gpgsign = true
 [fetch]

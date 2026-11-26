@@ -4,8 +4,10 @@
     "tips": false
   },
   "plugins": [
+{{- if hasKey . "external" }}
 {{- if .external.opencodePlugin }}
     "{{ .external.opencodePlugin }}"
+{{- end }}
 {{- end }}
   ],
   "mcp": {

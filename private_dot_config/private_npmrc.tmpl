@@ -2,4 +2,4 @@ fund=false
 ignore-scripts=true
 rebuild-bundle=false
 save-exact=true
-{{ if .external.npmRegistry }}{{ .external.npmScope }}:registry=https://{{ .external.npmRegistry }}{{ end }}
+{{ if hasKey . "external" }}{{ if .external.npmRegistry }}{{ .external.npmScope }}:registry=https://{{ .external.npmRegistry }}{{ end }}{{ end }}
