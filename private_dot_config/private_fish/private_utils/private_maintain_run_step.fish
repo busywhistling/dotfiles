@@ -67,7 +67,7 @@ function maintain_run_step -a cache spec index total
     # otherwise outlive the run.
     rm -f $stop
     set -g __maintain_stop $stop
-    command fish -c "source '$__fish_config_dir/functions/maintain_ui.fish'; maintain_ui_spin '$name' '$index' '$total' '$stop'" &
+    command fish -c "source '$__fish_config_dir/utils/maintain_ui.fish'; maintain_ui_spin '$name' '$index' '$total' '$stop'" &
     set -l spinner $last_pid
     $body >$log 2>&1
     set code $status

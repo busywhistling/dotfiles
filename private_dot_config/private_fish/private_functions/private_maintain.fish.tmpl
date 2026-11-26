@@ -7,11 +7,11 @@
 #   maintain --force       run every step, ignoring the schedule
 #   maintain --help
 #
-# The command is split by concern, next to this file:
+# The command is split by concern:
 #
-#   maintain_ui.fish        everything printed, and nothing else
-#   maintain_run_step.fish  running one step, and the schedule
-#   maintain_steps.fish     the step list and what each step does
+#   utils/maintain_ui.fish        everything printed, and nothing else
+#   utils/maintain_run_step.fish  running one step, and the schedule
+#   utils/maintain_steps.fish     the step list and what each step does
 #
 # This file only decides what to run and in which order, and holds the lock.
 #
@@ -23,9 +23,11 @@
 set -g MAINTAIN_SKIPPED 42
 
 # Autoloading defines only the function named after this file, so pull in the
-# rest of the command once, when `maintain` is first used in a shell.
+# rest of the command once, when `maintain` is first used in a shell. The
+# helpers live in utils/ instead of functions/ so they are not autoloaded as
+# commands of their own.
 for __maintain_file in maintain_ui maintain_run_step maintain_steps
-  source $__fish_config_dir/functions/$__maintain_file.fish
+  source $__fish_config_dir/utils/$__maintain_file.fish
 end
 set -e __maintain_file
 
