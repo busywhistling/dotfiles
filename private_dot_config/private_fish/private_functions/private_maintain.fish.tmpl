@@ -592,11 +592,21 @@ end
 
 function __maintain_step_dotfiles_commit
   set -l dotfiles ~/.config/chezmoi/sourceDir
-  set -l paths private_dot_config/private_Brewfile-macbook private_dot_config/private_Brewfile-hetzner
+  set -l brewfiles private_dot_config/private_Brewfile-macbook private_dot_config/private_Brewfile-hetzner
+  set -l lockfile private_dot_config/private_nvim/private_nvim-pack-lock.json
+  set -l paths $brewfiles $lockfile
   if git -C $dotfiles diff --quiet -- $paths; and git -C $dotfiles diff --quiet origin/main..HEAD -- $paths
     return $MAINTAIN_SKIPPED
   end
-  __maintain_commit_dotfiles 'chore(brew): sync the Brewfiles' $paths
+
+  # Separate commits: the Brewfiles and the plugin lock change for unrelated
+  # reasons, and each is the result of its own step above.
+  set -l failed 0
+  __maintain_commit_dotfiles 'chore(brew): sync the Brewfiles' $brewfiles
+  or set failed 1
+  __maintain_commit_dotfiles 'chore(nvim): update the plugin lockfile' $lockfile
+  or set failed 1
+  return $failed
 end
 
 function __maintain_step_restic_backup_to_backblaze
