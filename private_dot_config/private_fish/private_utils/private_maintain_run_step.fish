@@ -57,7 +57,9 @@ function maintain_run_step -a cache spec index total
     set code $status
   else if test "$mode" = stream; or test "$__maintain_tty" = 0
     maintain_ui_head $index $total $name
-    $body 2>&1 | tee $log
+    # tee first: the log keeps the step's own bytes, the screen gets them
+    # indented under the header.
+    $body 2>&1 | tee $log | maintain_ui_indent
     set code $pipestatus[1]
     chmod 600 $log 2>/dev/null
     maintain_ui_break $log

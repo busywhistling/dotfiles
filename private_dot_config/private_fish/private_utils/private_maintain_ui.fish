@@ -42,13 +42,38 @@ end
 function maintain_ui_head -a index total name
   printf '  '
   maintain_ui_marker run
-  printf ' [%s/%s] %s\n' $index $total $name
+  if test "$__maintain_colour" = 1
+    printf ' \e[90m[%s/%s]\e[0m \e[1m%s\e[0m\n' $index $total $name
+  else
+    printf ' [%s/%s] %s\n' $index $total $name
+  end
 end
 
 function maintain_ui_result -a kind name detail
+  set -l padded (string pad -w 26 --right -- $name)
   printf '  '
   maintain_ui_marker $kind
-  printf ' %s %s\n' (string pad -w 26 --right -- $name) $detail
+  if test "$__maintain_colour" = 1
+    printf ' %s \e[90m%s\e[0m\n' $padded $detail
+  else
+    printf ' %s %s\n' $padded $detail
+  end
+end
+
+# Pass a streamed step's output through, indented to line up with the step
+# lines. rsync and mbsync rewrite the same line with a carriage return, so
+# only the final state of each line is kept: the log reads as one line per
+# file instead of hundreds of frames.
+function maintain_ui_indent
+  while true
+    set -l line
+    if read -l line
+      printf '  %s\n' (string replace -r '.*\r\s*' '' -- $line)
+    else
+      test -n "$line"; and printf '  %s\n' (string replace -r '.*\r\s*' '' -- $line)
+      return 0
+    end
+  end
 end
 
 # Show the end of a failed step's log, so the reason is on screen without
@@ -81,7 +106,7 @@ function maintain_ui_spin -a name index total stop
     set -l frame $frames[(math "$i % 10 + 1")]
     set -l secs (math (date +%s) - $started)
     if test $colour -eq 1
-      printf '\r\e[2K  \e[36m%s\e[0m [%s/%s] %s \e[90m%s\e[0m' $frame $index $total $name (maintain_ui_short $secs)
+      printf '\r\e[2K  \e[36m%s\e[0m \e[90m[%s/%s]\e[0m \e[1m%s\e[0m \e[90m%s\e[0m' $frame $index $total $name (maintain_ui_short $secs)
     else
       printf '\r\e[2K  %s [%s/%s] %s %s' $frame $index $total $name (maintain_ui_short $secs)
     end
