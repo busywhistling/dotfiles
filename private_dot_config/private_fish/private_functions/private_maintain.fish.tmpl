@@ -183,9 +183,9 @@ function maintain
       test $hetzner_reboot -eq 1; and printf "hetzner: reboot recommended (kernel/firmware update pending)\n"
     end
 
-    # `brewdump` rewrites ~/.config/Brewfile-hetzner during the remote
-    # maintain. Fetch that copy so the chezmoi-tracked file can be committed
-    # and pulled back on the host (where it is applied as a no-op).
+    # `brewdump` rewrites ~/.config/Brewfile-hetzner on the server during the
+    # remote maintain, and the server owns that file. Fetch the result and
+    # re-add it so the tracked copy can be committed and pushed.
     if should_run $timestamp_dir hetzner_brewfile 21600 "6 hours"
       if scp -q -o ConnectTimeout=5 -o BatchMode=yes hetzner:~/.config/Brewfile-hetzner ~/.config/Brewfile-hetzner
         chezmoi add ~/.config/Brewfile-hetzner
