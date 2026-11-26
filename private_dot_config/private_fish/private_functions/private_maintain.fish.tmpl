@@ -77,11 +77,43 @@ function maintain
   if test (hostname) = hetzner
     if should_run $timestamp_dir podman_maintain 21600 "6 hours"
       podman auto-update
+
+      # `auto-update` restarts the pod, and pruning while the old containers
+      # are still unwinding fails with transient storage errors. Wait (max
+      # 60 s) until podman answers and nothing is mid-transition, then let the
+      # store settle.
+      for attempt in (seq 1 30)
+        set -l transitional 0
+        for state in (podman ps -a --format '{{"{{"}}.State{{"}}"}}' 2>/dev/null)
+          if string match -qr '^(created|configured|initialized|stopping)$' -- $state
+            set transitional 1
+          end
+        end
+        test $transitional -eq 0; and podman info >/dev/null 2>&1; and break
+        sleep 2
+      end
+      sleep 5
+
       # Leftover buildah build containers and storage-only containers pin base
       # images and layers, so `image prune` cannot free them.
       podman system prune --build -f
       podman system prune --external -f
-      podman system prune --all --volumes # --force
+
+      # `--force` skips the interactive prompt. A prune can still race the
+      # restart above, so retry with backoff instead of failing maintain.
+      set -l pruned 0
+      for attempt in 1 2 3
+        set -l prune_output (podman system prune --all --volumes --force 2>&1)
+        set -l prune_status $status
+        printf '%s\n' $prune_output
+        if test $prune_status -eq 0
+          set pruned 1
+          break
+        end
+        printf "podman system prune failed (attempt %s/3): %s\n" $attempt (string join ' ' -- $prune_output)
+        test $attempt -lt 3; and sleep (math "10 * $attempt")
+      end
+
       # Orphaned layers are invisible to `system df` and `image prune`.
       # Report only: `check --repair` would delete in-use images (the
       # opentodo /etc mtime warnings are benign).
@@ -89,7 +121,12 @@ function maintain
       if test $orphaned_layers -gt 0
         printf "warning: %s orphaned podman layers — inspect with podman system check\n" $orphaned_layers
       end
-      mark_run $timestamp_dir podman_maintain
+
+      if test $pruned -eq 0
+        printf "warning: podman storage cleanup failed; will retry next maintain\n"
+      else
+        mark_run $timestamp_dir podman_maintain
+      end
     end
   end
 
