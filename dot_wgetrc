@@ -1,0 +1,5 @@
+# Per-user GNU wget config. Read before the system rc (/opt/homebrew/etc/wgetrc).
+
+# Keep the HSTS database out of $HOME (default would be ~/.wget-hsts).
+# Parent directory must exist; wget will not create it.
+hsts_file = ~/.cache/wget/hsts

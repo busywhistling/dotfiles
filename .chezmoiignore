@@ -14,6 +14,7 @@ taplo.toml # repository metadata, not dotfiles
 .android
 .aws
 .bun
+.matplotlib
 .cache
 .cargo
 .claude

@@ -1,6 +1,8 @@
 [ai]
   allow_provider_config = true
   enabled = true
+  mode = "agent"
+  rules = ""
 
 [ai.custom_providers]
 
@@ -9,11 +11,17 @@
   custom_models = []
   displayed_models = []
 
+[cache]
+  loader = "lazy"
+  verification = "off"
+
 [completion]
   activate_on_typing = true
   auto_close_pairs = true
   copilot = "custom"
   signature_hint_on_typing = true
+
+[datasources]
 
 [diagnostics]
   sql_linter = true
@@ -29,7 +37,14 @@
   reference_highlighting = true
   theme = "system"
 
+[experimental]
+  debugger = false
+  execution_type = "relaxed"
+  isolate_apps = false
+  line_timing = false
+
 [formatting]
+  infer_types = "off"
   line_length = 80
 
 [keymap]
@@ -46,6 +61,10 @@
   enable_ruff = true
   enabled = false
 
+[lint]
+  ignore = []
+  select = []
+
 [mcp]
   presets = ["marimo"]
 
@@ -57,11 +76,16 @@
 [runtime]
   auto_instantiate = false
   auto_reload = "off"
+  cache_cells = false
+  default_auto_download = []
   default_csv_encoding = "utf-8"
   default_sql_output = "auto"
   on_cell_change = "autorun"
   output_max_bytes = 8000000
+  pin_modules = true
+  pythonpath = []
   reactive_tests = true
+  serve_cached_sessions_in_apps = false
   show_tracebacks = false
   std_stream_max_bytes = 1000000
   watcher_on_save = "lazy"
@@ -72,9 +96,26 @@
   format_on_save = true
 
 [server]
+  allow_origins = []
+  base_url = ""
   browser = "default"
+  disable_file_downloads = false
   follow_symlink = false
+  headless = false
+  host = "127.0.0.1"
+  include_code = false
+  redirect_console_to_browser = false
+  session_cookie_partitioned = false
+  session_cookie_secure = false
+  skew_protection = true
+  skip_update_check = false
+  watch = false
+
+[signing.trusted_signers]
 
 [snippets]
   custom_paths = []
   include_default_snippets = true
+
+[venv]
+  writable = false

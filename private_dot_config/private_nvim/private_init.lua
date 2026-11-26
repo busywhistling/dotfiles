@@ -496,6 +496,12 @@ local servers = {
 	-- gopls = {},
 	-- pyright = {},
 	ruff = {},
+	-- Markdown linting/formatting. rumdl reads the project config
+	-- (`.rumdl.toml`, `pyproject.toml` `[tool.rumdl]`, etc.) per file.
+	rumdl = {
+		filetypes = { "markdown" },
+		root_markers = { ".git", ".rumdl.toml", "rumdl.toml" },
+	},
 	rust_analyzer = {
 		settings = {
 			["rust-analyzer"] = {
@@ -530,6 +536,7 @@ vim.lsp.enable({
 	-- "harper_ls",
 	"lua_ls",
 	"ruff",
+	"rumdl",
 	"rust_analyzer",
 	"taplo",
 	"ts_ls",
@@ -604,6 +611,7 @@ setup("conform", {
 		jsonc = { "biome-check" },
 		css = { "biome-check" },
 		toml = { "taplo" },
+		markdown = { "rumdl" },
 		python = { "ruff_fix", "ruff_format", "ruff_organize_imports" },
 		rust = { "rustfmt" },
 	},
