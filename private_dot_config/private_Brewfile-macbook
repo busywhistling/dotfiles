@@ -102,6 +102,7 @@ brew "taplo"  # TOML toolkit written in Rust
 brew "termshark"  # Terminal UI for tshark, inspired by Wireshark
 brew "tidy-html5"  # Granddaddy of HTML tools, with support for modern standards
 brew "tinymist"  # Services for Typst
+brew "tokei"  # Program that allows you to count code, quickly
 brew "tree-sitter-cli"  # Parser generator tool
 brew "typst"  # Markup-based typesetting system
 brew "typstyle"  # Beautiful and reliable typst code formatter
