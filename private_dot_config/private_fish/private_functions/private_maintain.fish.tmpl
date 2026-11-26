@@ -99,18 +99,33 @@ function maintain
       podman system prune --build -f
       podman system prune --external -f
 
-      # `--force` skips the interactive prompt. A prune can still race the
-      # restart above, so retry with backoff instead of failing maintain.
-      set -l pruned 0
+      # `--force` keeps this unattended. `system prune --all` would also delete
+      # the `:previous` rollback tags, so remove the remaining unused images
+      # ourselves and skip them. Retry in case a prune races the restart above.
+      set -l kept_tags localhost/hometube-server:previous localhost/hometube-client:previous
+      set -l cleaned 0
       for attempt in 1 2 3
-        set -l prune_output (podman system prune --all --volumes --force 2>&1)
-        set -l prune_status $status
-        printf '%s\n' $prune_output
-        if test $prune_status -eq 0
-          set pruned 1
+        set -l failed 0
+
+        podman system prune --volumes --force
+        or set failed 1
+
+        set -l protected (podman image inspect --format '{{"{{"}}.Id{{"}}"}}' $kept_tags 2>/dev/null | string replace -r '^sha256:' '')
+        set -l in_use (podman ps -a --no-trunc --format '{{"{{"}}.ImageID{{"}}"}}' 2>/dev/null | string replace -r '^sha256:' '')
+        for id in (podman images --no-trunc --format '{{"{{"}}.ID{{"}}"}}' 2>/dev/null | sort -u)
+          set -l image (string replace -r '^sha256:' '' -- $id)
+          if contains -- $image $protected $in_use
+            continue
+          end
+          podman rmi --force $image
+          or set failed 1
+        end
+
+        if test $failed -eq 0
+          set cleaned 1
           break
         end
-        printf "podman system prune failed (attempt %s/3): %s\n" $attempt (string join ' ' -- $prune_output)
+        printf "podman image cleanup failed (attempt %s/3); retrying\n" $attempt
         test $attempt -lt 3; and sleep (math "10 * $attempt")
       end
 
@@ -122,7 +137,7 @@ function maintain
         printf "warning: %s orphaned podman layers — inspect with podman system check\n" $orphaned_layers
       end
 
-      if test $pruned -eq 0
+      if test $cleaned -eq 0
         printf "warning: podman storage cleanup failed; will retry next maintain\n"
       else
         mark_run $timestamp_dir podman_maintain
