@@ -5,6 +5,7 @@ sourceDir = "~/.config/chezmoi/sourceDir"
 [data]
   fullName      = "{{ promptStringOnce . "fullName"      "Full name for git commits" }}"
   email         = "{{ promptStringOnce . "email"         "Primary git email" }}"
+{{ if eq .chezmoi.hostname "macbook" }}
   sshSigningKey = "{{ promptStringOnce . "sshSigningKey" "SSH signing public key (ssh-ed25519 AAAA...)" }}"
 
 [data.vps]
@@ -71,4 +72,5 @@ sourceDir = "~/.config/chezmoi/sourceDir"
   mailPrimary         = "{{ promptStringOnce . "op.items.mailPrimary"         "1Password item: primary mailbox app password" }}"
   mailSecondary       = "{{ promptStringOnce . "op.items.mailSecondary"       "1Password item: second mailbox app password" }}"
   mailTertiary        = "{{ promptStringOnce . "op.items.mailTertiary"        "1Password item: third mailbox app password" }}"
+{{ end }}
 
