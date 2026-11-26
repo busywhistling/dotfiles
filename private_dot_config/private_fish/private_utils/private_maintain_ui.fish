@@ -48,13 +48,15 @@ function maintain_ui_head -a index total name
   end
 end
 
-function maintain_ui_result -a kind name detail
+# The result repeats the step's position, because a quiet step's spinner (and
+# its [n/total]) is erased when the line is replaced.
+function maintain_ui_result -a kind index total name detail
   set -l padded (string pad -w 26 --right -- $name)
   maintain_ui_marker $kind
   if test "$__maintain_colour" = 1
-    printf ' %s \e[90m%s\e[0m\n' $padded $detail
+    printf ' \e[90m[%s/%s]\e[0m %s \e[90m%s\e[0m\n' $index $total $padded $detail
   else
-    printf ' %s %s\n' $padded $detail
+    printf ' [%s/%s] %s %s\n' $index $total $padded $detail
   end
 end
 

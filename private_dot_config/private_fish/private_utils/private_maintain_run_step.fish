@@ -43,7 +43,7 @@ function maintain_run_step -a cache spec index total
 
   printf '\n'
   if not functions -q $body
-    maintain_ui_result fail $name 'not implemented'
+    maintain_ui_result fail $index $total $name 'not implemented'
     return 1
   end
 
@@ -84,11 +84,11 @@ function maintain_run_step -a cache spec index total
 
   set -l detail (maintain_ui_short (math (date +%s) - $started))
   if test $code -eq 0
-    maintain_ui_result ok $name $detail
+    maintain_ui_result ok $index $total $name $detail
   else if test $code -eq $MAINTAIN_SKIPPED
-    maintain_ui_result skip $name 'nothing to do'
+    maintain_ui_result skip $index $total $name 'nothing to do'
   else
-    maintain_ui_result fail $name $detail
+    maintain_ui_result fail $index $total $name $detail
     maintain_ui_tail $log
   end
 
