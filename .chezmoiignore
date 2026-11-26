@@ -34,7 +34,9 @@ taplo.toml # repository metadata, not dotfiles
 .local/bin/*
 !.local/bin/push-screenshots
 !.local/bin/fishfmt
-!.local/bin/chezmoi  # 1Password-backed chezmoi wrapper; Mac only (see below)
+{{ if eq .chezmoi.hostname "macbook" }}
+!.local/bin/chezmoi  # 1Password-backed chezmoi wrapper; Mac only
+{{ end }}
 .nono
 .notes
 .npm
@@ -89,7 +91,6 @@ Pictures
 .config/git/allowed_signers
 .config/restic
 .local/bin/push-screenshots
-.local/bin/chezmoi
 .config/fish/functions/maintain_dietpi.fish
 .config/fish/functions/backup_hometube.fish
 .config/fish/functions/ubuntu_vm.fish
