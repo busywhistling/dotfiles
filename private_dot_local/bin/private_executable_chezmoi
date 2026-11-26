@@ -1,0 +1,129 @@
+#!/usr/bin/env fish
+# chezmoi wrapper that supplies this Mac's template data from 1Password.
+#
+# The data lives in the `chezmoi_macbook` 1Password Environment, one secret
+# per value. Each secret is named CHEZMOI_<PATH>, where PATH is the chezmoi
+# data path in UPPER_SNAKE_CASE (CHEZMOI_VPS_HOST -> .vps.host).
+#
+# Reading 1Password needs the CLI and may need a Touch ID prompt, so the
+# mapped JSON is also cached in the login Keychain as a generic password.
+# 1Password remains the source of truth:
+#
+#   - interactive commands refresh the cache when it is older than
+#     CHEZMOI_1P_TTL seconds (default 600), so edits in 1Password show up;
+#   - background commands (no TTY) only read the cache, so pollers such as
+#     sketchybar never trigger a 1Password prompt;
+#   - CHEZMOI_1P_REFRESH=1 forces a refresh, CHEZMOI_1P_DEBUG=1 says what the
+#     shim decided.
+#
+# The data is handed to the real chezmoi through a named pipe, so it is never
+# written to disk in plaintext. `chezmoi purge` does not remove the cache;
+# delete the `chezmoi-macbook-data` Keychain item by hand if you want to.
+
+set -l real /opt/homebrew/bin/chezmoi
+if not test -x $real
+  printf 'chezmoi: %s not found\n' $real >&2
+  exit 1
+end
+
+# Commands that do not render templates: run them without 1Password.
+if test (count $argv) -gt 0
+  if contains -- $argv[1] --version help doctor completion license purge secret
+    exec $real $argv
+  end
+end
+if contains -- --help $argv; or contains -- -h $argv
+  exec $real $argv
+end
+
+set -l environment chezmoi_macbook
+set -l service chezmoi-macbook-data
+set -l keychain $HOME/Library/Keychains/login.keychain-db
+set -l ttl 600
+set -q CHEZMOI_1P_TTL; and set ttl $CHEZMOI_1P_TTL
+string match -qr '^[0-9]+$' -- $ttl; or set ttl 600
+
+function shim_debug -a message
+  if set -q CHEZMOI_1P_DEBUG
+    printf 'chezmoi: %s\n' $message >&2
+  end
+end
+
+# Always name the login keychain explicitly. A bare add/find makes `security`
+# search every keychain, which can reach the system-managed `metadata`
+# keychain and prompt for a password that does not exist.
+function keychain_read -a account service keychain
+  command security find-generic-password -a $account -s $service -w $keychain 2>/dev/null
+end
+
+function keychain_write -a account service keychain payload
+  command security delete-generic-password -a $account -s $service $keychain >/dev/null 2>&1
+  set -l hex (printf '%s' $payload | command xxd -p | command tr -d '\n')
+  command security add-generic-password -a $account -s $service -X $hex -A $keychain 2>/dev/null
+end
+
+# CHEZMOI_<PATH> -> dotted data path. Keep in sync with the data section of
+# .chezmoi.toml.tmpl (the Mac no longer has one).
+set -l mapping '{"CHEZMOI_AI_COMMIT_MODEL":"ai.commitModel","CHEZMOI_AI_ENV_DOCS":"ai.env.docs","CHEZMOI_AI_ENV_PRIMARY":"ai.env.primary","CHEZMOI_AI_ENV_PROXY":"ai.env.proxy","CHEZMOI_AWS_ACCOUNT_ID":"aws.accountId","CHEZMOI_AWS_PROFILE":"aws.profile","CHEZMOI_AWS_SSO_INSTANCE":"aws.ssoInstance","CHEZMOI_EMAIL":"email","CHEZMOI_EXTERNAL_NPM_REGISTRY":"external.npmRegistry","CHEZMOI_EXTERNAL_NPM_SCOPE":"external.npmScope","CHEZMOI_EXTERNAL_OPENCODE_PLUGIN":"external.opencodePlugin","CHEZMOI_FULL_NAME":"fullName","CHEZMOI_LAN_DIETPI":"lan.dietpi","CHEZMOI_MAIL_SECONDARY_ADDRESS":"mail.secondary.address","CHEZMOI_MAIL_SECONDARY_NAME":"mail.secondary.name","CHEZMOI_MAIL_TERTIARY_ADDRESS":"mail.tertiary.address","CHEZMOI_MAIL_TERTIARY_NAME":"mail.tertiary.name","CHEZMOI_MEDIA_ARCHIVE_BUCKET":"media.archiveBucket","CHEZMOI_MEDIA_ARCHIVE_DIR":"media.archiveDir","CHEZMOI_MEDIA_LIBRARY_DIR":"media.libraryDir","CHEZMOI_MEDIA_PROJECT_DIR":"media.projectDir","CHEZMOI_MEDIA_REMOTE_DIR":"media.remoteDir","CHEZMOI_OP_AI_VAULT":"op.aiVault","CHEZMOI_OP_ITEMS_AI_PRIMARY":"op.items.aiPrimary","CHEZMOI_OP_ITEMS_AI_PROXY":"op.items.aiProxy","CHEZMOI_OP_ITEMS_BACKUP_ARCHIVE":"op.items.backupArchive","CHEZMOI_OP_ITEMS_BACKUP_ARCHIVE_RESTIC":"op.items.backupArchiveRestic","CHEZMOI_OP_ITEMS_BACKUP_PRIMARY":"op.items.backupPrimary","CHEZMOI_OP_ITEMS_BACKUP_PRIMARY_RESTIC":"op.items.backupPrimaryRestic","CHEZMOI_OP_ITEMS_CLOUD_ACCOUNT":"op.items.cloudAccount","CHEZMOI_OP_ITEMS_CLOUD_ACCOUNT_FAMILY":"op.items.cloudAccountFamily","CHEZMOI_OP_ITEMS_DOCS_SEARCH":"op.items.docsSearch","CHEZMOI_OP_ITEMS_MAIL_PRIMARY":"op.items.mailPrimary","CHEZMOI_OP_ITEMS_MAIL_SECONDARY":"op.items.mailSecondary","CHEZMOI_OP_ITEMS_MAIL_TERTIARY":"op.items.mailTertiary","CHEZMOI_SSH_SIGNING_KEY":"sshSigningKey","CHEZMOI_VM_IP":"vm.ip","CHEZMOI_VM_NAME":"vm.name","CHEZMOI_VPS_HOST":"vps.host","CHEZMOI_VPS_PORT":"vps.port","CHEZMOI_VPS_USER":"vps.user"}'
+
+set -l cached (keychain_read $USER $service $keychain)
+set -l fetched 0
+set -l data ''
+if test -n "$cached"
+  set fetched (printf '%s' $cached | command jq -r '.fetchedAt // 0' 2>/dev/null)
+  set data (printf '%s' $cached | command jq -c '.data // empty' 2>/dev/null)
+end
+string match -qr '^[0-9]+$' -- $fetched; or set fetched 0
+
+set -l now (date +%s)
+set -l age (math $now - $fetched)
+set -l refresh 0
+if set -q CHEZMOI_1P_REFRESH
+  set refresh 1
+else if test -z "$data"
+  set refresh 1
+else if test $age -ge $ttl; and test -t 0
+  set refresh 1
+end
+
+if test $refresh -eq 1
+  shim_debug "refresh requested (cache age $age seconds)"
+  set -l raw (command op environment secret list $environment --reveal --format=json 2>/dev/null)
+  if test -n "$raw"
+    set -l fresh (printf '%s' $raw | command jq -c --argjson map "$mapping" '
+      (if type == "array" then . else (.secrets // .items // .variables // []) end)
+      | map({key: (.name // .Name), value: (.value // .Value // "")})
+      | from_entries as $secrets
+      | reduce ($map | to_entries[]) as $entry ({};
+          setpath($entry.value | split("."); ($secrets[$entry.key] // "")))
+    ' 2>/dev/null)
+    if test -n "$fresh"; and printf '%s' $fresh | command jq -e '.fullName != "" and .email != ""' >/dev/null 2>&1
+      set -l payload (printf '%s' $fresh | command jq -c --argjson at $now '{fetchedAt: $at, data: .}')
+      keychain_write $USER $service $keychain $payload
+      set data $fresh
+      shim_debug 'cache refreshed'
+    else
+      printf 'chezmoi: %s has no usable data (fullName/email missing)\n' $environment >&2
+    end
+  else
+    printf 'chezmoi: could not read the %s 1Password environment\n' $environment >&2
+  end
+end
+
+if test -z "$data"
+  printf 'chezmoi: no template data and no usable Keychain cache\n' >&2
+  printf 'chezmoi: unlock 1Password and run an interactive chezmoi command first\n' >&2
+  exit 1
+end
+
+set -l dir (command mktemp -d)
+set -l fifo $dir/data.json
+command mkfifo $fifo
+printf '%s' $data | command sh -c 'v=$(cat); while printf %s "$v" > "$1"; do :; done' _ $fifo &
+set -l writer $last_pid
+command $real --override-data-file $fifo $argv
+set -l st $status
+kill $writer 2>/dev/null
+wait $writer 2>/dev/null
+rm -rf $dir
+exit $st
