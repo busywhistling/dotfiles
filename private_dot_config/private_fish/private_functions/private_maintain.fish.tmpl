@@ -19,16 +19,18 @@ function maintain
     date +%s > "$timestamp_dir/$step_name.timestamp"
   end
 
-  # Commit and push a tracked dotfile if it changed, or if a previous run's
-  # commit never made it to origin. Returns non-zero so callers can retry.
-  function commit_dotfile -a path message
+  # Commit and push the given tracked dotfiles if any changed, or if a
+  # previous run's commit never made it to origin. Returns non-zero so
+  # callers can retry.
+  function commit_dotfiles -a message
+    set -l paths $argv[2..-1]
     set -l dotfiles ~/.config/chezmoi/sourceDir
-    if not git -C $dotfiles diff --quiet -- $path
-      git -C $dotfiles add $path
-      and git -C $dotfiles commit -q -m $message -- $path
+    if not git -C $dotfiles diff --quiet -- $paths
+      git -C $dotfiles add $paths
+      and git -C $dotfiles commit -q -m $message -- $paths
       or return 1
     end
-    if not git -C $dotfiles diff --quiet origin/main..HEAD -- $path
+    if not git -C $dotfiles diff --quiet origin/main..HEAD -- $paths
       env GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=5' git -C $dotfiles push -q origin HEAD:main
       or return 1
     end
@@ -169,10 +171,9 @@ function maintain
     printf "\nBacking up brew bundle to ~/.config/Brewfile-$hostname\n"
     brewdump
 {{ if eq .chezmoi.hostname "macbook" }}
-    # `brewdump` just rewrote the tracked Mac Brewfile. Commit it so the next
-    # `chezmoi update` does not revert it to the old snapshot.
-    commit_dotfile private_dot_config/private_Brewfile-macbook "chore(brew): sync the macbook Brewfile"
-    or printf "warning: could not commit the macbook Brewfile; will retry next run\n"
+    # Stage the fresh dump; the single Brewfile commit further down covers it.
+    chezmoi add ~/.config/Brewfile-macbook
+    or printf "warning: could not stage the macbook Brewfile; will retry next run\n"
 {{ end }}
     brew autoremove
     brew cleanup --prune=all
@@ -206,20 +207,23 @@ function maintain
     end
 
     # `brewdump` rewrites ~/.config/Brewfile-hetzner on the server during the
-    # remote maintain, and the server owns that file. Fetch the result, then
-    # commit and push the tracked copy so the server sees it on its next pull.
+    # remote maintain, and the server owns that file. Fetch the result; the
+    # single Brewfile commit below covers it.
     if should_run $timestamp_dir hetzner_brewfile 21600 "6 hours"
       if scp -q -o ConnectTimeout=5 -o BatchMode=yes hetzner:~/.config/Brewfile-hetzner ~/.config/Brewfile-hetzner
-        if chezmoi add ~/.config/Brewfile-hetzner
-          and commit_dotfile private_dot_config/private_Brewfile-hetzner "chore(brew): sync the hetzner Brewfile"
-          mark_run $timestamp_dir hetzner_brewfile
-        else
-          printf "warning: could not sync the hetzner Brewfile; will retry next run\n"
-        end
+        chezmoi add ~/.config/Brewfile-hetzner
+        and mark_run $timestamp_dir hetzner_brewfile
+        or printf "warning: could not stage the hetzner Brewfile; will retry next run\n"
       else
         printf "warning: could not fetch the hetzner Brewfile; will retry next run\n"
       end
     end
+
+    # One commit for both files: the Mac's own dump and the fetched copy.
+    commit_dotfiles "chore(brew): sync the Brewfiles" \
+      private_dot_config/private_Brewfile-macbook \
+      private_dot_config/private_Brewfile-hetzner
+    or printf "warning: could not commit the Brewfiles; will retry next run\n"
 
     if should_run $timestamp_dir dietpi_maintain 86400 "24 hours"
       printf "\n#################################################################\n"
@@ -257,5 +261,5 @@ function maintain
   #   mark_run $timestamp_dir icloud_sync
   # end
 {{ end }}
-  functions -e should_run mark_run commit_dotfile
+  functions -e should_run mark_run commit_dotfiles
 end
