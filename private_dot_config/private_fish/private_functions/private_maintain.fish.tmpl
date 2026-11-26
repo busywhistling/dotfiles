@@ -473,8 +473,11 @@ function __maintain_step_brew
   if not command -q brew
     return $MAINTAIN_SKIPPED
   end
+{{ if eq .chezmoi.hostname "macbook" }}
+  # Casks only exist on macOS.
   brew cu -qacy
   or return 1
+{{ end }}
   brew upgrade --no-ask
   or return 1
 
@@ -493,7 +496,12 @@ end
 
 {{ if eq .chezmoi.hostname "macbook" }}
 function __maintain_step_timemachine_exclude
+  # Best effort: most paths are already excluded, and one that has since been
+  # removed must not fail the step for the next six hours. The log keeps the
+  # reason; the summary stays green.
   timemachine_exclude
+  or printf 'warning: some exclusions were not applied\n'
+  return 0
 end
 
 function __maintain_step_mbsync
