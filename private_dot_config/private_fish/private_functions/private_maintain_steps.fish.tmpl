@@ -1,0 +1,299 @@
+# The step list, in run order, and what each step does.
+#
+# Name|interval, with an optional third field for how the step is presented
+# (see maintain_run_step). An interval of 0 means "every run".
+#
+# Order matters: everything that produces work to back up runs before restic,
+# so the snapshot contains the same day's repos, commits and database copy.
+
+function maintain_steps
+{{ if eq .chezmoi.hostname "macbook" }}
+  printf '%s\n' \
+    chezmoi_update'|'0'|'stream \
+    timemachine_exclude'|'21600'|'stream \
+    mbsync'|'21600 \
+    rsync_pictures_to_ssd'|'21600'|'stream \
+    sync_media'|'21600'|'stream \
+    brew'|'21600'|'stream \
+    update_neovim_plugins'|'21600 \
+    sync_repos'|'21600 \
+    mole'|'2629800'|'tty \
+    hetzner_maintain'|'21600 \
+    hetzner_brewfile'|'21600 \
+    dietpi_maintain'|'86400 \
+    hometube_backup'|'0 \
+    dotfiles_commit'|'0 \
+    restic_backup_to_backblaze'|'21600'|'stream
+{{ else }}
+  printf '%s\n' \
+    chezmoi_update'|'0'|'stream \
+    apt_upgrade'|'0'|'stream \
+    podman_maintain'|'21600 \
+    brew'|'21600'|'stream \
+    hermes_update'|'21600
+{{ end }}
+end
+
+# --- shared step code ----------------------------------------------------
+
+# Commit and push the given tracked dotfiles if any changed, or if a previous
+# run's commit never made it to origin.
+function maintain_commit_dotfiles -a message
+  set -l paths $argv[2..-1]
+  set -l dotfiles ~/.config/chezmoi/sourceDir
+  if not git -C $dotfiles diff --quiet -- $paths
+    git -C $dotfiles add $paths
+    and git -C $dotfiles commit -q -m $message -- $paths
+    or return 1
+  end
+  if not git -C $dotfiles diff --quiet origin/main..HEAD -- $paths
+    env GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=5' git -C $dotfiles push -q origin HEAD:main
+    or return 1
+  end
+  return 0
+end
+
+# --- step bodies ---------------------------------------------------------
+#
+# Return 0 when done, $MAINTAIN_SKIPPED when there was nothing to do, and
+# anything else when the step failed. Only 0 records the timestamp.
+
+function maintain_step_chezmoi_update
+  chezmoi update
+end
+
+function maintain_step_brew
+  if not command -q brew
+    return $MAINTAIN_SKIPPED
+  end
+{{ if eq .chezmoi.hostname "macbook" }}
+  # Casks only exist on macOS.
+  brew cu -qacy
+  or return 1
+{{ end }}
+  brew upgrade --no-ask
+  or return 1
+
+  printf '\nBacking up the brew bundle\n'
+  brewdump
+  or return 1
+{{ if eq .chezmoi.hostname "macbook" }}
+  # Stage the fresh dump; the dotfiles_commit step further down covers it.
+  chezmoi add ~/.config/Brewfile-macbook
+  or return 1
+{{ end }}
+  brew autoremove
+  or return 1
+  brew cleanup --prune=all
+end
+
+{{ if eq .chezmoi.hostname "macbook" }}
+function maintain_step_timemachine_exclude
+  # Best effort: most paths are already excluded, and one that has since been
+  # removed must not fail the step for the next six hours. The log keeps the
+  # reason; the summary stays green.
+  timemachine_exclude
+  or printf 'warning: some exclusions were not applied\n'
+  return 0
+end
+
+function maintain_step_mbsync
+  mbsync -a -c ~/.config/mbsyncrc
+end
+
+function maintain_step_rsync_pictures_to_ssd
+  if not test -d /Volumes/MEDIA/Pictures
+    printf 'external drive not mounted\n'
+    return $MAINTAIN_SKIPPED
+  end
+  rsync --archive --compress --progress --human-readable --delete \
+    --exclude='Photos Library.photoslibrary/' \
+    --exclude='Photo Booth-Mediathek/' \
+    ~/Pictures/ /Volumes/MEDIA/Pictures/
+end
+
+function maintain_step_sync_media
+  if not test -d "{{ .media.libraryDir }}"
+    printf 'external drive not mounted\n'
+    return $MAINTAIN_SKIPPED
+  end
+  sync_media_library
+end
+
+function maintain_step_update_neovim_plugins
+  nvim --headless "+lua vim.pack.update(nil, { force = true })" +qa
+  or return 1
+  chezmoi add ~/.config/nvim/nvim-pack-lock.json
+end
+
+function maintain_step_sync_repos
+  sync_repos
+end
+
+function maintain_step_mole
+  if not command -q mo
+    return $MAINTAIN_SKIPPED
+  end
+  printf 'Deep cleaning the system\n'
+  mo clean
+end
+
+function maintain_step_hetzner_maintain
+  printf 'Maintaining hetzner\n'
+  ssh -o ConnectTimeout=5 -o BatchMode=yes hetzner maintain
+  set -l code $status
+  if test $code -ne 0
+    printf 'warning: hetzner maintenance failed (status %s)\n' $code
+  end
+
+  # Hetzner runs containers, so only report a pending reboot here.
+  set -l reboot 0
+  ssh -o ConnectTimeout=5 -o BatchMode=yes hetzner test -e /run/reboot-required; and set reboot 1
+  ssh -o ConnectTimeout=5 -o BatchMode=yes hetzner 'test "$(ls -1 /lib/modules | sort -V | tail -1)" != "$(uname -r)"'; and set reboot 1
+  test $reboot -eq 1; and printf 'hetzner: reboot recommended (kernel/firmware update pending)\n'
+
+  return $code
+end
+
+function maintain_step_hetzner_brewfile
+  printf 'Fetching the hetzner Brewfile\n'
+  if not scp -q -o ConnectTimeout=5 -o BatchMode=yes hetzner:~/.config/Brewfile-hetzner ~/.config/Brewfile-hetzner
+    printf 'could not fetch the hetzner Brewfile\n'
+    return 1
+  end
+  chezmoi add ~/.config/Brewfile-hetzner
+end
+
+function maintain_step_dietpi_maintain
+  printf 'Maintaining dietpi\n'
+  if not maintain_dietpi
+    printf 'warning: dietpi maintenance failed\n'
+    return 1
+  end
+end
+
+function maintain_step_hometube_backup
+  if test -f ~/Documents/vps_backups/(date +%F)/hometube.db
+    return $MAINTAIN_SKIPPED
+  end
+  printf "Backing up today's HomeTube database\n"
+  if not backup_hometube
+    printf 'warning: hometube backup failed\n'
+    return 1
+  end
+end
+
+function maintain_step_dotfiles_commit
+  set -l dotfiles ~/.config/chezmoi/sourceDir
+  set -l brewfiles private_dot_config/private_Brewfile-macbook private_dot_config/private_Brewfile-hetzner
+  set -l lockfile private_dot_config/private_nvim/private_nvim-pack-lock.json
+  set -l paths $brewfiles $lockfile
+  if git -C $dotfiles diff --quiet -- $paths; and git -C $dotfiles diff --quiet origin/main..HEAD -- $paths
+    return $MAINTAIN_SKIPPED
+  end
+
+  # Separate commits: the Brewfiles and the plugin lock change for unrelated
+  # reasons, and each is the result of its own step above.
+  set -l failed 0
+  maintain_commit_dotfiles 'chore(brew): sync the Brewfiles' $brewfiles
+  or set failed 1
+  maintain_commit_dotfiles 'chore(nvim): update the plugin lockfile' $lockfile
+  or set failed 1
+  return $failed
+end
+
+function maintain_step_restic_backup_to_backblaze
+  restic_backup_to_backblaze
+end
+{{ else }}
+function maintain_step_apt_upgrade
+  if not is_ubuntu
+    return $MAINTAIN_SKIPPED
+  end
+  sudo apt update
+  and sudo apt upgrade --yes
+end
+
+function maintain_step_podman_maintain
+  podman auto-update
+  or return 1
+
+  # `auto-update` restarts the pod, and pruning while the old containers are
+  # still unwinding fails with transient storage errors. Wait (max 60 s) until
+  # podman answers and nothing is mid-transition, then let the store settle.
+  for attempt in (seq 1 30)
+    set -l transitional 0
+    for state in (podman ps -a --format '{{"{{"}}.State{{"}}"}}' 2>/dev/null)
+      if string match -qr '^(created|configured|initialized|stopping)$' -- $state
+        set transitional 1
+      end
+    end
+    test $transitional -eq 0; and podman info >/dev/null 2>&1; and break
+    sleep 2
+  end
+  sleep 5
+
+  # Leftover buildah build containers and storage-only containers pin base
+  # images and layers, so `image prune` cannot free them.
+  podman system prune --build -f
+  podman system prune --external -f
+
+  # `--force` keeps this unattended. `system prune --all` would also delete the
+  # `:previous` rollback tags, so remove the remaining unused images ourselves
+  # and skip them. Retry in case a prune races the restart above.
+  set -l kept_tags localhost/hometube-server:previous localhost/hometube-client:previous
+  set -l cleaned 0
+  for attempt in 1 2 3
+    set -l failed 0
+
+    podman system prune --volumes --force
+    or set failed 1
+
+    set -l protected (podman image inspect --format '{{"{{"}}.Id{{"}}"}}' $kept_tags 2>/dev/null | string replace -r '^sha256:' '')
+    set -l in_use (podman ps -a --no-trunc --format '{{"{{"}}.ImageID{{"}}"}}' 2>/dev/null | string replace -r '^sha256:' '')
+    for id in (podman images --no-trunc --format '{{"{{"}}.ID{{"}}"}}' 2>/dev/null | sort -u)
+      set -l image (string replace -r '^sha256:' '' -- $id)
+      if contains -- $image $protected $in_use
+        continue
+      end
+      podman rmi --force $image
+      or set failed 1
+    end
+
+    if test $failed -eq 0
+      set cleaned 1
+      break
+    end
+    printf 'podman image cleanup failed (attempt %s/3); retrying\n' $attempt
+    test $attempt -lt 3; and sleep (math "10 * $attempt")
+  end
+
+  # Orphaned layers are invisible to `system df` and `image prune`.
+  # Report only: `check --repair` would delete in-use images (the
+  # opentodo /etc mtime warnings are benign).
+  set -l orphaned_layers (podman system check 2>&1 | grep -c 'not referenced by any images or containers')
+  if test $orphaned_layers -gt 0
+    printf 'warning: %s orphaned podman layers — inspect with podman system check\n' $orphaned_layers
+  end
+
+  if test $cleaned -eq 0
+    printf 'warning: podman storage cleanup failed\n'
+    return 1
+  end
+  return 0
+end
+
+function maintain_step_hermes_update
+  if not command -q hermes
+    return $MAINTAIN_SKIPPED
+  end
+  hermes update --yes
+end
+{{ end }}
+
+{{ if eq .chezmoi.hostname "macbook" }}
+# Not scheduled: iCloud photo sync needs a one-time SMS code, so it stays a
+# manual step:
+#   icloud-sync --mfa-sms -u (op read "op://Private/{{ .op.items.cloudAccount }}/username") -p (op read "op://Private/{{ .op.items.cloudAccount }}/password") -d ~/Pictures/.icloud-backups/paramjit
+#   icloud-sync --mfa-sms -u (op read "op://Private/{{ .op.items.cloudAccountFamily }}/username") -p (op read "op://Private/{{ .op.items.cloudAccountFamily }}/password") -d ~/Pictures/.icloud-backups/{{ .mail.tertiary.name }}
+{{ end }}
