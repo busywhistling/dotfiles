@@ -19,6 +19,22 @@ function maintain
     date +%s > "$timestamp_dir/$step_name.timestamp"
   end
 
+  # Commit and push a tracked dotfile if it changed, or if a previous run's
+  # commit never made it to origin. Returns non-zero so callers can retry.
+  function commit_dotfile -a path message
+    set -l dotfiles ~/.config/chezmoi/sourceDir
+    if not git -C $dotfiles diff --quiet -- $path
+      git -C $dotfiles add $path
+      and git -C $dotfiles commit -q -m $message -- $path
+      or return 1
+    end
+    if not git -C $dotfiles diff --quiet origin/main..HEAD -- $path
+      env GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=5' git -C $dotfiles push -q origin HEAD:main
+      or return 1
+    end
+    return 0
+  end
+
   chezmoi update
 {{ if eq .chezmoi.hostname "macbook" }}
   if test (hostname) = macbook
@@ -152,6 +168,12 @@ function maintain
     # end
     printf "\nBacking up brew bundle to ~/.config/Brewfile-$hostname\n"
     brewdump
+{{ if eq .chezmoi.hostname "macbook" }}
+    # `brewdump` just rewrote the tracked Mac Brewfile. Commit it so the next
+    # `chezmoi update` does not revert it to the old snapshot.
+    commit_dotfile private_dot_config/private_Brewfile-macbook "chore(brew): sync the macbook Brewfile"
+    or printf "warning: could not commit the macbook Brewfile; will retry next run\n"
+{{ end }}
     brew autoremove
     brew cleanup --prune=all
     mark_run $timestamp_dir brew
@@ -188,30 +210,8 @@ function maintain
     # commit and push the tracked copy so the server sees it on its next pull.
     if should_run $timestamp_dir hetzner_brewfile 21600 "6 hours"
       if scp -q -o ConnectTimeout=5 -o BatchMode=yes hetzner:~/.config/Brewfile-hetzner ~/.config/Brewfile-hetzner
-        set -l dotfiles ~/.config/chezmoi/sourceDir
-        set -l brewfile private_dot_config/private_Brewfile-hetzner
-        set -l synced 1
-
-        chezmoi add ~/.config/Brewfile-hetzner
-        or set synced 0
-
-        if test $synced -eq 1
-          if not git -C $dotfiles diff --quiet -- $brewfile
-            git -C $dotfiles add $brewfile
-            and git -C $dotfiles commit -q -m "chore(brew): sync the hetzner Brewfile" -- $brewfile
-            or set synced 0
-          end
-        end
-
-        if test $synced -eq 1
-          if not git -C $dotfiles diff --quiet origin/main..HEAD -- $brewfile
-            env GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=5' \
-              git -C $dotfiles push -q origin HEAD:main
-            or set synced 0
-          end
-        end
-
-        if test $synced -eq 1
+        if chezmoi add ~/.config/Brewfile-hetzner
+          and commit_dotfile private_dot_config/private_Brewfile-hetzner "chore(brew): sync the hetzner Brewfile"
           mark_run $timestamp_dir hetzner_brewfile
         else
           printf "warning: could not sync the hetzner Brewfile; will retry next run\n"
@@ -257,5 +257,5 @@ function maintain
   #   mark_run $timestamp_dir icloud_sync
   # end
 {{ end }}
-  functions -e should_run mark_run
+  functions -e should_run mark_run commit_dotfile
 end
