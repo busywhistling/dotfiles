@@ -106,6 +106,8 @@ Pictures
 .config/fish/functions/feeds.fish
 .config/fish/functions/bare_opencode.fish
 .config/fish/functions/restic_backup_to_backblaze.fish
+.config/fish/functions/backup_credential.fish
+.config/fish/functions/preload_backup_credentials.fish
 .config/fish/functions/sync_media_from_hetzner.fish
 .config/fish/functions/sync_media_library.fish
 {{ end }}

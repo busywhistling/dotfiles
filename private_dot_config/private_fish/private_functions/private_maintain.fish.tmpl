@@ -37,6 +37,27 @@ function maintain
     return 0
   end
 
+{{ if eq .chezmoi.hostname "macbook" }}
+  # 1Password's CLI authorization expires after ten idle minutes, but a single
+  # step in this script (rsync, restic) can run for hours. On the Mac, unlock
+  # 1Password once, up front, and read everything the run needs before the
+  # first long step starts:
+  #
+  #   - restic's credentials for both Backblaze buckets, read here instead of
+  #     hours later inside restic_backup_to_backblaze;
+  #   - everything the chezmoi wrapper needs: CHEZMOI_1P_TTL keeps it on its
+  #     Keychain cache for the whole run, so the `chezmoi add` calls below
+  #     cannot refresh the cache and prompt again either.
+  #
+  # CHEZMOI_1P_TTL is function-local and exported: only the commands in this
+  # run see it, and the next interactive chezmoi command refreshes normally.
+  if test (hostname) = macbook
+    printf "Unlocking 1Password once for the whole run\n"
+    preload_backup_credentials
+    or printf "warning: could not read the backup credentials; restic will retry them itself\n"
+    set -lx CHEZMOI_1P_TTL 43200
+  end
+{{ end }}
   chezmoi update
 {{ if eq .chezmoi.hostname "macbook" }}
   if test (hostname) = macbook
@@ -44,8 +65,6 @@ function maintain
       timemachine_exclude
       mark_run $timestamp_dir timemachine_exclude
     end
-
-    op read "op://Private/dummy/username" > /dev/null
 
     if should_run $timestamp_dir mbsync 21600 "6 hours"
       mbsync -a -c ~/.config/mbsyncrc
