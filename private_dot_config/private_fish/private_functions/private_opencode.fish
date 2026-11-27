@@ -1,4 +1,10 @@
 function opencode
-  # caffeinate -i nono run --allow-cwd --profile paramjit -- /opt/homebrew/bin/opencode --standalone
-  caffeinate -i /opt/homebrew/bin/opencode $argv
+  # macOS: keep the machine awake while OpenCode runs.
+  # Linux (the Hetzner box): run the user-installed v2 binary, because brew only
+  # ships v1 there and its DB has been migrated.
+  if test (uname) = Darwin
+    caffeinate -i /opt/homebrew/bin/opencode $argv
+  else
+    command $HOME/.opencode/bin/opencode $argv
+  end
 end
