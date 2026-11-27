@@ -1,10 +1,9 @@
 function opencode
   # macOS: keep the machine awake while OpenCode runs.
-  # Linux (the Hetzner box): run the user-installed v2 binary, because brew only
-  # ships v1 there and its DB has been migrated.
+  # Linux (the Hetzner box): brew's opencode-v2 is on PATH.
   if test (uname) = Darwin
     caffeinate -i /opt/homebrew/bin/opencode $argv
   else
-    command $HOME/.opencode/bin/opencode $argv
+    command opencode $argv
   end
 end
